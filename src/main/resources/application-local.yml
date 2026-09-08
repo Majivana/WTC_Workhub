@@ -2,6 +2,16 @@ spring:
   config:
     activate:
       on-profile: local
+  datasource:
+    url: jdbc:sqlite:${WTC_DB_PATH:./workhub-local.db}
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
 
 server:
   port: 8080
+
+app:
+  seed:
+    enabled: ${WTC_SEED_DATA:false}

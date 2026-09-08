@@ -17,6 +17,33 @@ mvn spring-boot:run
 The local profile starts on port `8080`. The health endpoint is available at
 `http://localhost:8080/actuator/health`.
 
+### Local SQLite setup
+
+The default `local` profile uses SQLite at `./workhub-local.db`. The database file is ignored
+by Git and can be reset safely:
+
+```bash
+rm -f workhub-local.db
+mvn spring-boot:run
+```
+
+Local demonstration data is opt-in and idempotent. Enable it with `WTC_SEED_DATA=true`:
+
+```bash
+rm -f workhub-local.db
+WTC_SEED_DATA=true mvn spring-boot:run
+```
+
+The seed creates a Cape Town campus, a Peer Tutor work role, a demo student, a demo supervisor,
+the July–August 2026 WorkPeriod with an 18-hour weekly target, and sample activity types.
+
+Supported environment variables:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `WTC_DB_PATH` | `./workhub-local.db` | SQLite database file path |
+| `WTC_SEED_DATA` | `false` | Explicitly enable deterministic local seed data |
+
 ## Planning
 
 ### Current-system analysis
