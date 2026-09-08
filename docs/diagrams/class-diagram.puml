@@ -1,0 +1,120 @@
+@startuml
+title WTC Workhub Domain Class Diagram
+
+class User {
+  +id: UUID
+  +username: String
+  +status: UserStatus
+}
+
+class Institution {
+  +id: UUID
+  +name: String
+}
+
+class Campus {
+  +id: UUID
+  +name: String
+  +latitude: Decimal
+  +longitude: Decimal
+  +geofenceRadiusMetres: Integer
+}
+
+class WorkRole {
+  +id: UUID
+  +code: String
+  +name: String
+}
+
+class WorkPeriod {
+  +id: UUID
+  +name: String
+  +startDate: LocalDate
+  +endDate: LocalDate
+  +weeklyHoursTarget: Decimal
+}
+
+class WorkEntry {
+  +id: UUID
+  +workDate: LocalDate
+  +durationMinutes: Integer
+  +status: WorkEntryStatus
+}
+
+class AttendanceSession {
+  +id: UUID
+  +clockInAt: Instant
+  +clockOutAt: Instant
+  +durationMinutes: Integer
+  +status: AttendanceStatus
+}
+
+class AttendanceCapture {
+  +id: UUID
+  +captureType: CaptureType
+  +capturedAt: Instant
+  +selfieObjectKey: String
+  +locationValidated: Boolean
+}
+
+class ActivityType {
+  +id: UUID
+  +name: String
+  +active: Boolean
+}
+
+class Evidence {
+  +id: UUID
+  +status: EvidenceStatus
+}
+
+class EvidenceVersion {
+  +id: UUID
+  +versionNumber: Integer
+  +objectKey: String
+  +checksum: String
+}
+
+class Submission {
+  +id: UUID
+  +status: SubmissionStatus
+}
+
+class Verification {
+  +id: UUID
+  +action: VerificationAction
+  +createdAt: Instant
+}
+
+class AuditLog {
+  +id: UUID
+  +action: AuditAction
+  +createdAt: Instant
+}
+
+Institution "1" o-- "*" Campus
+Campus "1" o-- "*" User
+User "*" --> "1" WorkRole
+User "1" --> "*" WorkEntry
+User "1" --> "*" AttendanceSession
+WorkPeriod "1" --> "*" WorkEntry
+WorkPeriod "1" --> "*" AttendanceSession
+WorkEntry "*" --> "1" ActivityType
+WorkEntry "1" o-- "*" Evidence
+Evidence "1" o-- "*" EvidenceVersion
+WorkEntry "1" --> "*" Submission
+Submission "1" o-- "*" Verification
+AttendanceSession "1" o-- "*" AttendanceCapture
+User "1" --> "*" Verification : verifier
+User "1" --> "*" AuditLog : actor
+
+note right of AttendanceCapture
+Selfies are private objects.
+Only metadata and object references
+are stored in the database.
+end note
+
+note bottom of Verification
+Verification records are append-only.
+end note
+@enduml

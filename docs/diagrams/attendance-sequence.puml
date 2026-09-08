@@ -1,0 +1,41 @@
+@startuml
+title First-party Campus Attendance Sequence
+
+actor User
+boundary Browser
+control AttendanceApi
+control AttendanceService
+database Database
+collections PrivateObjectStorage
+
+== Clock in ==
+User -> Browser: Select "Clock in"
+Browser -> Browser: Request camera and location permission
+Browser -> AttendanceApi: Submit selfie and location proof
+AttendanceApi -> AttendanceService: Validate authenticated user
+AttendanceService -> Database: Load assigned campus geofence
+AttendanceService -> AttendanceService: Validate location inside geofence
+AttendanceService -> PrivateObjectStorage: Store private selfie object
+AttendanceService -> Database: Record server clock-in and capture metadata
+AttendanceApi --> Browser: Active session confirmation
+Browser --> User: Show clock-in time and campus
+
+== Clock out ==
+User -> Browser: Select "Clock out"
+Browser -> Browser: Capture selfie and current location
+Browser -> AttendanceApi: Submit clock-out proof
+AttendanceApi -> AttendanceService: Validate active session
+AttendanceService -> Database: Load active session and campus geofence
+AttendanceService -> AttendanceService: Validate location and timestamp ordering
+AttendanceService -> PrivateObjectStorage: Store private selfie object
+AttendanceService -> Database: Record server clock-out and duration
+AttendanceService -> Database: Append audit event
+AttendanceApi --> Browser: Completed session and duration
+Browser --> User: Show worked duration
+
+note over AttendanceService
+No facial recognition is performed.
+Server timestamps are authoritative.
+Failed attempts must not expose selfie data.
+end note
+@enduml

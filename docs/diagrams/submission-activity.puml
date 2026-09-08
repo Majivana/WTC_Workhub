@@ -1,0 +1,38 @@
+@startuml
+title Student Work Submission and Verification Activity
+
+start
+:Student signs in;
+:Create work entry;
+:Validate date, duration, period, and overlap;
+
+if (Valid work entry?) then (yes)
+  :Capture or attach evidence;
+  :Save draft or submit;
+  if (Submit?) then (yes)
+    :Create SUBMITTED submission;
+    :Notify supervisor;
+    :Supervisor opens review queue;
+    :Review work, evidence, and attendance session;
+    if (Decision) then (Approve)
+      :Append APPROVED verification;
+      :Notify student;
+      :Recalculate weekly progress;
+    elseif (Request changes)
+      :Append CHANGES_REQUESTED verification;
+      :Notify student;
+      :Student creates a new evidence version;
+      :Resubmit;
+    else (Reject)
+      :Append REJECTED verification;
+      :Notify student;
+    endif
+  else (draft)
+    :Keep editable DRAFT;
+  endif
+else (no)
+  :Show validation errors;
+endif
+
+stop
+@enduml

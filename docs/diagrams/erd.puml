@@ -1,0 +1,127 @@
+@startuml
+title WTC Workhub Entity Relationship Diagram
+
+entity institution {
+  * id : UUID <<PK>>
+  --
+  name : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity campus {
+  * id : UUID <<PK>>
+  --
+  institution_id : UUID <<FK>>
+  name : VARCHAR
+  latitude : DECIMAL
+  longitude : DECIMAL
+  geofence_radius_metres : INTEGER
+}
+
+entity app_user {
+  * id : UUID <<PK>>
+  --
+  campus_id : UUID <<FK>>
+  work_role_id : UUID <<FK>>
+  username : VARCHAR <<UK>>
+  status : VARCHAR
+}
+
+entity work_role {
+  * id : UUID <<PK>>
+  --
+  code : VARCHAR <<UK>>
+  name : VARCHAR
+}
+
+entity work_period {
+  * id : UUID <<PK>>
+  --
+  name : VARCHAR
+  start_date : DATE
+  end_date : DATE
+  weekly_hours_target : DECIMAL
+}
+
+entity work_entry {
+  * id : UUID <<PK>>
+  --
+  user_id : UUID <<FK>>
+  work_period_id : UUID <<FK>>
+  activity_type_id : UUID <<FK>>
+  work_date : DATE
+  duration_minutes : INTEGER
+  status : VARCHAR
+}
+
+entity attendance_session {
+  * id : UUID <<PK>>
+  --
+  user_id : UUID <<FK>>
+  campus_id : UUID <<FK>>
+  work_period_id : UUID <<FK>>
+  clock_in_at : TIMESTAMP
+  clock_out_at : TIMESTAMP
+  duration_minutes : INTEGER
+  status : VARCHAR
+}
+
+entity attendance_capture {
+  * id : UUID <<PK>>
+  --
+  attendance_session_id : UUID <<FK>>
+  capture_type : VARCHAR
+  captured_at : TIMESTAMP
+  selfie_object_key : VARCHAR
+  location_validated : BOOLEAN
+}
+
+entity evidence {
+  * id : UUID <<PK>>
+  --
+  work_entry_id : UUID <<FK>>
+  status : VARCHAR
+}
+
+entity evidence_version {
+  * id : UUID <<PK>>
+  --
+  evidence_id : UUID <<FK>>
+  version_number : INTEGER
+  object_key : VARCHAR
+  checksum : VARCHAR
+  uploaded_at : TIMESTAMP
+}
+
+entity submission {
+  * id : UUID <<PK>>
+  --
+  work_entry_id : UUID <<FK>>
+  status : VARCHAR
+}
+
+entity verification {
+  * id : UUID <<PK>>
+  --
+  submission_id : UUID <<FK>>
+  verifier_id : UUID <<FK>>
+  evidence_version_id : UUID <<FK>>
+  action : VARCHAR
+  created_at : TIMESTAMP
+}
+
+institution ||--o{ campus
+campus ||--o{ app_user
+work_role ||--o{ app_user
+app_user ||--o{ work_entry
+work_period ||--o{ work_entry
+work_period ||--o{ attendance_session
+app_user ||--o{ attendance_session
+campus ||--o{ attendance_session
+attendance_session ||--o{ attendance_capture
+work_entry ||--o{ evidence
+evidence ||--o{ evidence_version
+work_entry ||--o{ submission
+submission ||--o{ verification
+
+@enduml

@@ -262,3 +262,11 @@ Backlog -> Ready -> In Progress -> Code Review -> Testing -> Done
 
 Issues should be moved only when their actual implementation state changes. Commits must remain
 small, meaningful, and linked to the relevant issue.
+
+### Documentation
+
+- [Architecture specification](docs/architecture/README.md)
+- [Database specification](docs/database/README.md)
+- [AWS specification](docs/aws/README.md)
+- [PlantUML diagrams](docs/diagrams/)
+- [Architecture Decision Records](docs/adr/README.md)

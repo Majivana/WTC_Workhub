@@ -1,0 +1,44 @@
+@startuml
+title WTC Workhub AWS Deployment Specification
+
+node "Internet" {
+  actor "Student / Supervisor / Admin" as user
+}
+
+cloud "AWS VPC" {
+  node "Private application subnet" {
+    component "ECS Fargate Service\nSpring Boot Workhub" as ecs
+  }
+
+  database "RDS PostgreSQL\nStaging" as rds
+  database "Aurora PostgreSQL\nProduction" as aurora
+}
+
+cloud "Private S3 bucket" as s3
+component "EventBridge Schedule" as schedule
+component "Lambda\nWeekly Reminder Processor" as lambda
+component "CloudWatch\nLogs and Alarms" as cw
+component "IAM\nTask and Lambda Roles" as iam
+
+user --> ecs : HTTPS
+ecs --> rds : staging database traffic
+ecs --> aurora : production database traffic
+ecs --> s3 : private evidence/selfie objects
+schedule --> lambda : scheduled invocation
+lambda --> ecs : reminder processing
+ecs --> cw : application logs
+lambda --> cw : function logs
+iam --> ecs : task permissions
+iam --> lambda : execution permissions
+
+note right of rds
+Environment-specific target.
+Not used together with Aurora.
+end note
+
+note right of s3
+Private by default.
+Use authorization and
+presigned URLs.
+end note
+@enduml
