@@ -17,6 +17,22 @@ mvn spring-boot:run
 The local profile starts on port `8080`. The health endpoint is available at
 `http://localhost:8080/actuator/health`.
 
+### Build commands
+
+The Makefile provides a consistent developer interface:
+
+```bash
+make build
+make test
+make verify
+make clean
+make run
+make package
+```
+
+GitHub Actions runs tests and packages the application on pushes to `main` and pull requests
+targeting `main`. A failed command causes the workflow to fail visibly.
+
 ### Local SQLite setup
 
 The default `local` profile uses SQLite at `./workhub-local.db`. The database file is ignored
