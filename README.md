@@ -270,3 +270,5 @@ small, meaningful, and linked to the relevant issue.
 - [AWS specification](docs/aws/README.md)
 - [PlantUML diagrams](docs/diagrams/)
 - [Architecture Decision Records](docs/adr/README.md)
+- [Development journal](docs/journal/README.md)
+- [Publish-ready Wiki content](docs/wiki/README.md)
