@@ -2,6 +2,160 @@
 
 ## Planning
 
+### Current-system analysis
+
+This analysis is based only on the supplied attendance register, Evidence of Work emails,
+feedback forms, review form, and self-evaluation form. It does not claim access to the
+underlying KwantuGo, Evidence Drive, feedback portal, GitLab, or payroll systems.
+
+#### [CURRENT SYSTEM EVIDENCE]
+
+- Attendance is recorded in KwantuGo and is described as biometric attendance.
+- The supplied attendance report contains sites/teams, people, dates, clock-in times,
+  clock-out times, and recorded daily durations.
+- The July–August 2026 payment cycle covers **21 July–20 August 2026**.
+- Days without a sign-out are excluded from the current hours calculation.
+- Days with a sign-out after 18:00 are also excluded from the current hours calculation.
+- Attendance confirms presence, but does not by itself confirm the work performed.
+- Evidence of Work must describe the date, activities, people assisted, support provided,
+  topics/projects/exercises, technical or academic assistance, supporting documentation,
+  and signatures.
+- Evidence was submitted to an Evidence Drive using campus folders and a
+  `Name_Surname_Role` naming convention.
+- The supplied emails specify first-round and final submission deadlines and warn that
+  insufficient evidence can affect payroll processing.
+- One follow-up email identifies attendance days with no corresponding Evidence of Work.
+- Peer Tutor feedback asks for daily work descriptions, student support, workshops,
+  planning, code reviews, GitLab links, evidence, challenges, and escalation concerns.
+- The review form records a date, student assisted, workshop/content description, and
+  signatures.
+- The self-evaluation form records reflection on learning, guidance, workload, and
+  collaboration.
+
+#### [INFERENCE]
+
+The evidence indicates a fragmented process in which attendance, work evidence, feedback,
+repositories, email communication, and payroll review are maintained separately. This
+requires manual reconciliation and makes it difficult to determine whether recorded hours
+are supported by sufficiently detailed evidence.
+
+Likely operational risks include missing evidence, incomplete signatures, excluded
+attendance records, late corrections, duplicate data entry, and unclear review ownership.
+These are inferences from the supplied documents and are not claims about undocumented
+system behaviour.
+
+#### [PROPOSED REDESIGN]
+
+WTC Workhub will provide one traceable workflow connecting first-party attendance sessions,
+work entries, activities, evidence, submissions, supervisor verification, notifications,
+dashboards, and reports.
+
+For the MVP, students and supervisors will sign in to Workhub and use the device camera to
+capture a selfie when they start and end an attendance session. The system will record the
+server time for each event and calculate the session duration from the clock-in and clock-out
+timestamps. A location check must confirm that the device is within an approved WeThinkCode_
+campus boundary before a session can start or end.
+
+This is a proposed attendance-control mechanism, not facial-recognition or biometric identity
+verification. The selfie and location are supporting attendance evidence and must be protected
+as sensitive personal data. The design must define how failed location checks, camera denial,
+offline devices, duplicate clock-outs, abandoned sessions, and manual corrections are handled.
+There is no external attendance-system integration or imported/mock attendance dataset in the
+MVP design.
+
+The system will still preserve the distinction between attendance and evidence: being present
+on campus does not by itself prove what work was completed. Attendance sessions therefore remain
+reconcilable with work entries, activities, evidence, and supervisor verification.
+
+### Proposed first-party attendance workflow
+
+```text
+User signs in
+  -> camera permission and selfie capture
+  -> campus geofence validation
+  -> server records clock-in time, location result, and selfie reference
+  -> user performs work
+  -> camera permission and selfie capture
+  -> campus geofence validation
+  -> server records clock-out time
+  -> session duration is calculated
+  -> session is reconciled with work entries and evidence
+```
+
+Attendance implementation requirements:
+
+- Store server-generated timestamps rather than trusting the device clock.
+- Store campus coordinates and an approved geofence radius as configuration.
+- Store selfie metadata and private object references, not public image URLs.
+- Encrypt and restrict selfie access.
+- Record failed attempts and relevant audit events without exposing images in logs.
+- Prevent a second active session for the same user.
+- Require a valid active session before claiming time-based work where applicable.
+- Make corrections explicit and auditable rather than silently changing timestamps.
+- Provide a documented fallback for camera, location, or network failure.
+
+### Source-derived requirements
+
+The following requirements are directly supported by the supplied documents:
+
+1. Record attendance dates, clock-in times, clock-out times, and recorded durations.
+2. Identify incomplete attendance records, including missing sign-outs.
+3. Identify attendance records excluded by current business rules, including late sign-outs.
+4. Record the date on which work was completed.
+5. Record detailed activities and the specific support provided.
+6. Record the people or groups assisted.
+7. Record topics, projects, exercises, troubleshooting, debugging, code reviews, and
+   technical or academic guidance where applicable.
+8. Attach supporting documents, screenshots, notes, presentations, attendance records,
+   repository links, and other relevant evidence.
+9. Capture worker and assisted-person confirmations or signatures where required by the
+   applicable evidence process.
+10. Support submission deadlines and late-submission visibility.
+11. Compare claimed work hours with first-party attendance sessions.
+12. Identify attendance sessions that have no corresponding work evidence.
+13. Support review, correction, and resubmission of incomplete evidence.
+14. Capture daily feedback, challenges, blockers, concerns, achievements, and support needs.
+15. Capture feedback about engagement, participation, collaboration, confidence,
+   understanding, problem-solving, improvement, strengths, and challenges.
+16. Retain enough context to support payroll-oriented verification without claiming that
+   Workhub is a payroll system.
+
+### Unresolved questions
+
+These questions require confirmation before the corresponding behaviour is treated as an
+authoritative business rule:
+
+- What exact institutions, campuses, site codes, and team structures must be seeded?
+- Are Johannesburg and Cape Town the only active campuses for the MVP?
+- Which partner institutions and campus/location names are official?
+- What is the authoritative source for a student's supervisor, mentor, and work role?
+- Is the 18-hour weekly target universal, or does it vary by work period, role, campus,
+  or contract?
+- How are partial weeks at the beginning and end of a work period calculated?
+- What exact rules define a workday, break, overtime, late sign-out, and payable hours?
+- Should a work entry be required for every attendance day, or can one entry cover multiple
+  people or activities?
+- Which evidence types and file sizes are permitted?
+- Are signatures required as uploaded files, typed confirmations, or an external process?
+- Who may request changes, reject evidence, approve evidence, and reopen an approval?
+- What is the formal correction deadline after a change request?
+- What are the approved WeThinkCode_ campus coordinates and geofence radii?
+- What location accuracy threshold is acceptable before clock-in or clock-out is rejected?
+- Are selfie images retained, and if so, for how long and who may view them?
+- Is a selfie used only as attendance evidence, or is any identity comparison required?
+- What happens when camera permission, location permission, GPS accuracy, or network access
+  is unavailable?
+- Are manual attendance corrections permitted, who may approve them, and how are they audited?
+- Can a supervisor clock in/out using the same campus restrictions, or do supervisors have
+  different attendance rules?
+- Which notification channels are required for the MVP: in-app, email, or both?
+- What retention period and access rules apply to evidence, attendance, and audit records?
+- Which reports are required by operations, supervisors, or payroll reviewers?
+- What exact data may be used in a public demonstration or repository?
+- Is an RDS staging database and an Aurora production database expected to be deployed,
+  or is documented architecture sufficient for assessment?
+- What AWS budget and account restrictions apply to ECS, RDS, Aurora, and S3?
+
 ### Delivery objective
 
 Deliver a demonstrable MVP by **20 September 2026**. The delivery is organized around the
@@ -39,7 +193,7 @@ Student
 - Immutable verification history and audit events
 - Student and supervisor workflows
 - Authentication and RBAC
-- Attendance import and reconciliation boundary
+- First-party campus attendance with selfie and location evidence
 - Unit, integration, and golden-path tests
 - Docker, Makefile, CI, and complete README
 
@@ -60,7 +214,8 @@ Student
 
 #### Out of scope for the MVP
 
-- Live biometric integration
+- External biometric or attendance-system integration
+- Facial-recognition identity verification
 - Payroll-system integration
 - SMS or WhatsApp
 - Native mobile application
