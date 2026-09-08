@@ -4,6 +4,19 @@
 
 Verification code: `WTC-5ECA3RJ3`
 
+## Local development
+
+The application requires **Java 21** and **Maven 3.9+**.
+
+```bash
+mvn test
+mvn package
+mvn spring-boot:run
+```
+
+The local profile starts on port `8080`. The health endpoint is available at
+`http://localhost:8080/actuator/health`.
+
 ## Planning
 
 ### Current-system analysis
