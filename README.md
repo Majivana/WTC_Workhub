@@ -1,5 +1,9 @@
 # WTC Workhub
 
+## Repository verification
+
+Verification code: `WTC-5ECA3RJ3`
+
 ## Planning
 
 ### Current-system analysis
