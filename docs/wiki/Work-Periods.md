@@ -17,3 +17,7 @@ default or other fixed target.
 The current JSON API exposes this calculation at
 `GET /api/users/{userId}/work-periods/{workPeriodId}/progress`. API responses use a dedicated
 DTO and the `ProgressStatus` enum; database records are not exposed directly to clients.
+
+Work entries submitted through the API must fall within the WorkPeriod dates. Their effective
+duration is calculated from start/end times minus break minutes, and entries cannot overlap for
+the same user and date.

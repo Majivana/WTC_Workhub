@@ -40,6 +40,12 @@ CREATE TABLE IF NOT EXISTS work_entry (
     status TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES app_user(id),
     FOREIGN KEY (work_period_id) REFERENCES work_period(id), FOREIGN KEY (activity_type_id) REFERENCES activity_type(id)
 );
+CREATE TABLE IF NOT EXISTS work_entry_timing (
+    work_entry_id TEXT PRIMARY KEY, start_time TEXT NOT NULL, end_time TEXT NOT NULL,
+    break_minutes INTEGER NOT NULL DEFAULT 0 CHECK (break_minutes >= 0),
+    FOREIGN KEY (work_entry_id) REFERENCES work_entry(id) ON DELETE CASCADE,
+    CHECK (end_time > start_time)
+);
 CREATE TABLE IF NOT EXISTS attendance_session (
     id TEXT PRIMARY KEY, user_id TEXT NOT NULL, campus_id TEXT NOT NULL, work_period_id TEXT,
     clock_in_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, clock_out_at TEXT,
@@ -90,6 +96,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE UNIQUE INDEX IF NOT EXISTS ux_active_attendance_session_user ON attendance_session(user_id) WHERE status = 'ACTIVE';
 CREATE INDEX IF NOT EXISTS ix_campus_geofence_campus_active ON campus_geofence(campus_id, active);
 CREATE INDEX IF NOT EXISTS ix_work_entry_user_period_date ON work_entry(user_id, work_period_id, work_date);
+CREATE INDEX IF NOT EXISTS ix_work_entry_timing_range ON work_entry_timing(start_time, end_time);
 CREATE INDEX IF NOT EXISTS ix_attendance_session_user_status ON attendance_session(user_id, status);
 CREATE INDEX IF NOT EXISTS ix_attendance_capture_session ON attendance_capture(attendance_session_id);
 CREATE INDEX IF NOT EXISTS ix_evidence_version_evidence ON evidence_version(evidence_id, version_number);
