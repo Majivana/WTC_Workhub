@@ -1,6 +1,33 @@
 # API Documentation
 
-The API contract is not implemented yet. Planned resource groups are:
+The application exposes JSON REST resources. The current implemented endpoint is:
+
+### Weekly progress
+
+```http
+GET /api/users/{userId}/work-periods/{workPeriodId}/progress
+Accept: application/json
+```
+
+Successful responses contain:
+
+```json
+{
+  "targetHours": 10,
+  "loggedHours": 3,
+  "verifiedHours": 2,
+  "pendingHours": 1,
+  "remainingHours": 7,
+  "percentage": 30,
+  "status": "BELOW_TARGET"
+}
+```
+
+`status` is the `ProgressStatus` enum with values `BELOW_TARGET`, `ON_TARGET`, and
+`OVER_TARGET`. Unknown work periods return `404 Not Found`. The endpoint serializes DTOs rather
+than exposing database records directly.
+
+Planned resource groups are:
 
 - `/auth`
 - `/users`
