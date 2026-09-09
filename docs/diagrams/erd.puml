@@ -13,9 +13,16 @@ entity campus {
   --
   institution_id : UUID <<FK>>
   name : VARCHAR
+}
+
+entity campus_geofence {
+  * id : UUID <<PK>>
+  --
+  campus_id : UUID <<FK>>
   latitude : DECIMAL
   longitude : DECIMAL
-  geofence_radius_metres : INTEGER
+  radius_metres : INTEGER
+  active : BOOLEAN
 }
 
 entity app_user {
@@ -52,6 +59,7 @@ entity work_entry {
   work_date : DATE
   duration_minutes : INTEGER
   status : VARCHAR
+  reconciliation_reference : VARCHAR
 }
 
 entity attendance_session {
@@ -72,8 +80,9 @@ entity attendance_capture {
   attendance_session_id : UUID <<FK>>
   capture_type : VARCHAR
   captured_at : TIMESTAMP
-  selfie_object_key : VARCHAR
-  location_validated : BOOLEAN
+  private_object_reference_id : UUID <<FK>>
+  location_valid : BOOLEAN
+  location_result : VARCHAR
 }
 
 entity evidence {
@@ -88,9 +97,29 @@ entity evidence_version {
   --
   evidence_id : UUID <<FK>>
   version_number : INTEGER
-  object_key : VARCHAR
+  private_object_reference_id : UUID <<FK>>
   checksum : VARCHAR
   uploaded_at : TIMESTAMP
+}
+
+entity private_object_reference {
+  * id : UUID <<PK>>
+  --
+  object_key : VARCHAR <<UK>>
+  media_type : VARCHAR
+  size_bytes : INTEGER
+  checksum : VARCHAR
+  purpose : VARCHAR
+}
+
+entity audit_log {
+  * id : UUID <<PK>>
+  --
+  actor_id : UUID <<FK>>
+  entity_type : VARCHAR
+  entity_id : UUID
+  action : VARCHAR
+  created_at : TIMESTAMP
 }
 
 entity submission {
@@ -111,6 +140,7 @@ entity verification {
 }
 
 institution ||--o{ campus
+campus ||--o{ campus_geofence
 campus ||--o{ app_user
 work_role ||--o{ app_user
 app_user ||--o{ work_entry
@@ -119,8 +149,10 @@ work_period ||--o{ attendance_session
 app_user ||--o{ attendance_session
 campus ||--o{ attendance_session
 attendance_session ||--o{ attendance_capture
+private_object_reference ||--o{ attendance_capture
 work_entry ||--o{ evidence
 evidence ||--o{ evidence_version
+private_object_reference ||--o{ evidence_version
 work_entry ||--o{ submission
 submission ||--o{ verification
 

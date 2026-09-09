@@ -1,0 +1,3 @@
+package co.za.millenniumsolutions.repository;
+import co.za.millenniumsolutions.model.AuditLog; import org.springframework.jdbc.core.JdbcTemplate; import org.springframework.stereotype.Repository;
+@Repository public class AuditLogRepository extends RepositorySupport { public AuditLogRepository(JdbcTemplate j){super(j);} public AuditLog save(AuditLog x){update("INSERT INTO audit_log(id,actor_id,entity_type,entity_id,action,details,created_at) VALUES (?,?,?,?,?,?,COALESCE(?,CURRENT_TIMESTAMP))",x.id(),x.actorId(),x.entityType(),x.entityId(),x.action(),x.details(),x.createdAt()==null?null:x.createdAt().toString()); return x;} }

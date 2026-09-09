@@ -20,9 +20,15 @@ public class LocalSeedData {
                 """);
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO campus
-                    (id, institution_id, name, latitude, longitude, geofence_radius_metres)
+                    (id, institution_id, name)
                 VALUES
-                    ('campus-cape-town', 'institution-wtc', 'Cape Town', -33.9249, 18.4241, 150)
+                    ('campus-cape-town', 'institution-wtc', 'Cape Town')
+                """);
+        jdbcTemplate.update("""
+                INSERT OR IGNORE INTO campus_geofence
+                    (id, campus_id, latitude, longitude, radius_metres, active)
+                VALUES
+                    ('geofence-cape-town-primary', 'campus-cape-town', -33.9249, 18.4241, 150, 1)
                 """);
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO work_role (id, code, name)

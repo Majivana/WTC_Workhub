@@ -1,0 +1,3 @@
+package co.za.millenniumsolutions.repository;
+import co.za.millenniumsolutions.model.CampusGeofence; import org.springframework.jdbc.core.JdbcTemplate; import org.springframework.stereotype.Repository;
+@Repository public class CampusGeofenceRepository extends RepositorySupport { public CampusGeofenceRepository(JdbcTemplate j){super(j);} public CampusGeofence save(CampusGeofence x){update("INSERT INTO campus_geofence(id,campus_id,latitude,longitude,radius_metres,active) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET latitude=excluded.latitude,longitude=excluded.longitude,radius_metres=excluded.radius_metres,active=excluded.active",x.id(),x.campusId(),x.latitude(),x.longitude(),x.radiusMetres(),x.active()?1:0); return x;} }

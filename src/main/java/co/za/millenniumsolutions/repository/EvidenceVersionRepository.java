@@ -1,0 +1,3 @@
+package co.za.millenniumsolutions.repository;
+import co.za.millenniumsolutions.model.EvidenceVersion; import org.springframework.jdbc.core.JdbcTemplate; import org.springframework.stereotype.Repository;
+@Repository public class EvidenceVersionRepository extends RepositorySupport { public EvidenceVersionRepository(JdbcTemplate j){super(j);} public EvidenceVersion save(EvidenceVersion x){update("INSERT INTO evidence_version(id,evidence_id,version_number,private_object_reference_id,checksum,uploaded_at) VALUES (?,?,?,?,?,COALESCE(?,CURRENT_TIMESTAMP)) ON CONFLICT(id) DO UPDATE SET checksum=excluded.checksum",x.id(),x.evidenceId(),x.versionNumber(),x.privateObjectReferenceId(),x.checksum(),x.uploadedAt()==null?null:x.uploadedAt().toString()); return x;} }

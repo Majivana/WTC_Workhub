@@ -1,0 +1,3 @@
+package co.za.millenniumsolutions.repository;
+import co.za.millenniumsolutions.model.Verification; import org.springframework.jdbc.core.JdbcTemplate; import org.springframework.stereotype.Repository;
+@Repository public class VerificationRepository extends RepositorySupport { public VerificationRepository(JdbcTemplate j){super(j);} public Verification save(Verification x){update("INSERT INTO verification(id,submission_id,verifier_id,evidence_version_id,action,created_at) VALUES (?,?,?,?,?,COALESCE(?,CURRENT_TIMESTAMP))",x.id(),x.submissionId(),x.verifierId(),x.evidenceVersionId(),x.action(),x.createdAt()==null?null:x.createdAt().toString()); return x;} }
