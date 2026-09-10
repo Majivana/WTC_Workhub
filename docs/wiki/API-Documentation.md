@@ -9,6 +9,22 @@ GET /api/users/{userId}/work-periods/{workPeriodId}/progress
 Accept: application/json
 ```
 
+### Activity types
+
+Activity types are configurable records. `GET /api/activity-types` returns active types;
+pass `includeInactive=true` to include disabled types. Supervisors or administrators can
+create, update, and delete types with `POST`, `PUT /{id}`, and `DELETE /{id}`.
+
+Work entries must reference an existing active activity type.
+
+### Evidence metadata
+
+`POST /api/work-entries/{workEntryId}/evidence` records an evidence version and its private
+object metadata (`objectKey`, `mediaType`, `sizeBytes`, `checksum`, `purpose`, and
+`createdBy`). File bytes are not accepted or stored by this API. Only PDF, JPEG, and PNG
+metadata is accepted, with a positive size up to 10 MB and a 64-character SHA-256 checksum.
+`GET` on the same path returns the latest relational metadata.
+
 Successful responses contain:
 
 ```json
@@ -66,6 +82,7 @@ Planned resource groups are:
 - `/work-periods`
 - `/attendance-sessions`
 - `/work-entries`
+- `/activity-types` (also available as `/activities`)
 - `/evidence`
 - `/submissions`
 - `/verifications`

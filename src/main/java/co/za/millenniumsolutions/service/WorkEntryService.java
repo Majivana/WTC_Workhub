@@ -5,6 +5,7 @@ import co.za.millenniumsolutions.model.WorkEntry;
 import co.za.millenniumsolutions.model.WorkPeriod;
 import co.za.millenniumsolutions.repository.WorkEntryRepository;
 import co.za.millenniumsolutions.repository.WorkPeriodRepository;
+import co.za.millenniumsolutions.repository.ActivityTypeRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -17,10 +18,13 @@ public class WorkEntryService {
 
     private final WorkEntryRepository workEntries;
     private final WorkPeriodRepository workPeriods;
+    private final ActivityTypeRepository activities;
 
-    public WorkEntryService(WorkEntryRepository workEntries, WorkPeriodRepository workPeriods) {
+    public WorkEntryService(WorkEntryRepository workEntries, WorkPeriodRepository workPeriods,
+                            ActivityTypeRepository activities) {
         this.workEntries = workEntries;
         this.workPeriods = workPeriods;
+        this.activities = activities;
     }
 
     public WorkEntry create(String userId, String workPeriodId, WorkEntryRequest request) {
@@ -56,6 +60,9 @@ public class WorkEntryService {
                 request.workDate() == null || request.startTime() == null || request.endTime() == null ||
                 request.breakMinutes() == null) {
             throw new IllegalArgumentException("All work-entry fields are required");
+        }
+        if (activities.findById(request.activityTypeId()).filter(activity -> activity.active()).isEmpty()) {
+            throw new IllegalArgumentException("Activity type is unknown or inactive");
         }
         if (request.workDate().isBefore(period.startDate()) ||
                 request.workDate().isAfter(period.endDate())) {
