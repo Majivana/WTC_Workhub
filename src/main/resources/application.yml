@@ -17,3 +17,11 @@ management:
 server:
   error:
     include-message: never
+
+app:
+  storage:
+    provider: ${WTC_STORAGE_PROVIDER:local}
+    s3:
+      bucket: ${WTC_S3_BUCKET:}
+      region: ${AWS_REGION:af-south-1}
+      presign-minutes: ${WTC_S3_PRESIGN_MINUTES:10}

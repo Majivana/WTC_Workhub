@@ -9,31 +9,34 @@ import co.za.millenniumsolutions.repository.EvidenceRepository;
 import co.za.millenniumsolutions.repository.EvidenceVersionRepository;
 import co.za.millenniumsolutions.repository.PrivateObjectReferenceRepository;
 import co.za.millenniumsolutions.repository.WorkEntryRepository;
+import co.za.millenniumsolutions.storage.StorageObjectRequest;
+import co.za.millenniumsolutions.storage.StorageObjectType;
+import co.za.millenniumsolutions.storage.StoragePolicy;
+import co.za.millenniumsolutions.storage.StoragePort;
+import co.za.millenniumsolutions.storage.StorageUpload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class EvidenceService {
-    private static final long MAX_SIZE_BYTES = 10 * 1024 * 1024;
-    private static final Set<String> ALLOWED_MEDIA_TYPES = Set.of(
-            "application/pdf", "image/jpeg", "image/png");
-
     private final WorkEntryRepository workEntries;
     private final EvidenceRepository evidence;
     private final EvidenceVersionRepository versions;
     private final PrivateObjectReferenceRepository objects;
+    private final StoragePort storage;
 
     public EvidenceService(WorkEntryRepository workEntries, EvidenceRepository evidence,
-                           EvidenceVersionRepository versions, PrivateObjectReferenceRepository objects) {
+                           EvidenceVersionRepository versions, PrivateObjectReferenceRepository objects,
+                           StoragePort storage) {
         this.workEntries = workEntries;
         this.evidence = evidence;
         this.versions = versions;
         this.objects = objects;
+        this.storage = storage;
     }
 
     @Transactional
@@ -43,19 +46,22 @@ public class EvidenceService {
         validate(request);
 
         String mediaType = request.mediaType().trim().toLowerCase();
-        String objectKey = request.objectKey().trim();
         String purpose = request.purpose().trim();
+        String checksum = request.checksum().trim().toLowerCase();
+        StorageUpload upload = storage.createUpload(new StorageObjectRequest(
+                StorageObjectType.EVIDENCE, mediaType, request.sizeBytes(), checksum));
         Evidence current = evidence.findByWorkEntryId(workEntryId)
                 .orElseGet(() -> evidence.save(new Evidence(UUID.randomUUID().toString(), workEntryId, "DRAFT")));
         int versionNumber = versions.nextVersionNumber(current.id());
         String objectId = UUID.randomUUID().toString();
         Instant now = Instant.now();
-        PrivateObjectReference object = objects.save(new PrivateObjectReference(objectId, objectKey,
-                mediaType, request.sizeBytes(), request.checksum().trim().toLowerCase(), purpose,
+        PrivateObjectReference object = objects.save(new PrivateObjectReference(objectId, upload.objectKey(),
+                mediaType, request.sizeBytes(), checksum, purpose,
                 request.createdBy(), now));
         EvidenceVersion version = versions.save(new EvidenceVersion(UUID.randomUUID().toString(), current.id(),
-                versionNumber, objectId, request.checksum().trim().toLowerCase(), now));
-        return EvidenceMetadataResponse.from(current, version, object);
+                versionNumber, objectId, checksum, now));
+        return EvidenceMetadataResponse.from(current, version, object,
+                upload.uploadUrl(), upload.presigned());
     }
 
     public EvidenceMetadataResponse get(String workEntryId) {
@@ -66,7 +72,7 @@ public class EvidenceService {
                 .orElseThrow(() -> new NoSuchElementException("Evidence metadata is incomplete"));
         PrivateObjectReference object = objects.findById(version.privateObjectReferenceId())
                 .orElseThrow(() -> new NoSuchElementException("Evidence object metadata is incomplete"));
-        return EvidenceMetadataResponse.from(current, version, object);
+        return EvidenceMetadataResponse.from(current, version, object, null, false);
     }
 
     private String evidenceVersionId(String evidenceId) {
@@ -75,22 +81,12 @@ public class EvidenceService {
     }
 
     private void validate(EvidenceUploadRequest request) {
-        if (request == null || blank(request.objectKey()) || blank(request.mediaType()) ||
+        if (request == null || blank(request.mediaType()) ||
                 blank(request.checksum()) || blank(request.purpose())) {
-            throw new IllegalArgumentException("Object key, media type, checksum and purpose are required");
+            throw new IllegalArgumentException("Media type, checksum and purpose are required");
         }
-        if (request.objectKey().trim().startsWith("/") || request.objectKey().contains("..")) {
-            throw new IllegalArgumentException("Object key must be a private relative key");
-        }
-        if (!ALLOWED_MEDIA_TYPES.contains(request.mediaType().trim().toLowerCase())) {
-            throw new IllegalArgumentException("Unsupported evidence media type");
-        }
-        if (request.sizeBytes() <= 0 || request.sizeBytes() > MAX_SIZE_BYTES) {
-            throw new IllegalArgumentException("Evidence size must be between 1 byte and 10 MB");
-        }
-        if (!request.checksum().trim().matches("(?i)^[a-f0-9]{64}$")) {
-            throw new IllegalArgumentException("Checksum must be a SHA-256 hexadecimal value");
-        }
+        StoragePolicy.validate(new StorageObjectRequest(StorageObjectType.EVIDENCE,
+                request.mediaType(), request.sizeBytes(), request.checksum()));
     }
 
     private boolean blank(String value) {

@@ -2,6 +2,7 @@
 
 - ECS Fargate hosts the Spring Boot application.
 - S3 stores private evidence and attendance selfie objects.
+- Evidence and selfie objects use separate prefixes and presigned upload/download URLs.
 - VPC provides network isolation.
 - IAM supplies least-privilege task and function roles.
 - CloudWatch receives application and Lambda logs.

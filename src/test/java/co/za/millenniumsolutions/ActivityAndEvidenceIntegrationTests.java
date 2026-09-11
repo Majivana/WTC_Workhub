@@ -112,7 +112,8 @@ class ActivityAndEvidenceIntegrationTests {
                         .contentType(APPLICATION_JSON).content(request))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versionNumber").value(1))
-                .andExpect(jsonPath("$.objectKey").value("evidence/work-entry-1.pdf"))
+                .andExpect(jsonPath("$.objectKey").value(org.hamcrest.Matchers.matchesPattern(
+                        "evidence/[0-9a-f-]+")))
                 .andExpect(jsonPath("$.mediaType").value("application/pdf"))
                 .andExpect(jsonPath("$.checksum").value(checksum))
                 .andExpect(jsonPath("$.purpose").value("Daily evidence"));

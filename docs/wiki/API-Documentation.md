@@ -22,12 +22,21 @@ Work entries must reference an existing active activity type.
 ### Evidence metadata
 
 `POST /api/work-entries/{workEntryId}/evidence` records an evidence version and its private
-object metadata (`objectKey`, `mediaType`, `sizeBytes`, `checksum`, `purpose`, and
-`createdBy`). File bytes are not accepted or stored by this API. Only PDF, JPEG, and PNG
-metadata is accepted, with a positive size up to 10 MB and a 64-character SHA-256 checksum.
-Media types, checksums, object keys, and purposes are normalized before storage. Each
-successful upload creates the next evidence version, and `GET` on the same path returns the
-latest relational metadata.
+object metadata (`mediaType`, `sizeBytes`, `checksum`, `purpose`, and `createdBy`). File
+bytes are not accepted or stored by this API. The storage port generates a random
+`evidence/<uuid>` key and returns a local test URL or, for S3, a presigned upload URL.
+Only PDF, JPEG, and PNG metadata is accepted, with a positive size up to 10 MB and a
+64-character SHA-256 checksum. Each successful upload creates the next evidence version,
+and `GET` on the same path returns the latest relational metadata.
+
+Private object downloads use:
+
+```http
+GET /api/private-objects/{objectId}/download?actorId={userId}
+```
+
+The service permits the object owner, supervisors, and administrators, and returns a
+short-lived local URL or S3 presigned URL. Object keys are never public URLs.
 
 Successful responses contain:
 

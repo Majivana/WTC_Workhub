@@ -17,11 +17,16 @@ public record EvidenceMetadataResponse(
         String checksum,
         String purpose,
         String createdBy,
-        Instant uploadedAt) {
+        Instant uploadedAt,
+        String uploadUrl,
+        boolean presigned) {
     public static EvidenceMetadataResponse from(Evidence evidence, EvidenceVersion version,
-                                                  PrivateObjectReference object) {
+                                                  PrivateObjectReference object,
+                                                  String uploadUrl,
+                                                  boolean presigned) {
         return new EvidenceMetadataResponse(evidence.id(), evidence.workEntryId(), evidence.status(),
                 version.versionNumber(), object.objectKey(), object.mediaType(), object.sizeBytes(),
-                version.checksum(), object.purpose(), object.createdBy(), version.uploadedAt());
+                version.checksum(), object.purpose(), object.createdBy(), version.uploadedAt(),
+                uploadUrl, presigned);
     }
 }
