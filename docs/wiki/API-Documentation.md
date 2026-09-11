@@ -1,6 +1,7 @@
 # API Documentation
 
-The application exposes JSON REST resources. The current implemented endpoint is:
+The application exposes JSON REST resources. The implemented endpoints use ordinary Java DTO
+classes for JSON binding; database models are not exposed directly as transport objects.
 
 ### Weekly progress
 
@@ -11,7 +12,7 @@ Accept: application/json
 
 ### Activity types
 
-Activity types are configurable records. `GET /api/activity-types` returns active types;
+Activity types are configurable resources. `GET /api/activity-types` returns active types;
 pass `includeInactive=true` to include disabled types. Supervisors or administrators can
 create and update types with `POST` and `PUT /{id}`. `DELETE /{id}` deactivates the type
 instead of removing it, preserving historical work-entry references. Duplicate names are
@@ -29,14 +30,17 @@ Only PDF, JPEG, and PNG metadata is accepted, with a positive size up to 10 MB a
 64-character SHA-256 checksum. Each successful upload creates the next evidence version,
 and `GET` on the same path returns the latest relational metadata.
 
-Private object downloads use:
+Private object downloads currently use:
 
 ```http
 GET /api/private-objects/{objectId}/download?actorId={userId}
 ```
 
 The service permits the object owner, supervisors, and administrators, and returns a
-short-lived local URL or S3 presigned URL. Object keys are never public URLs.
+short-lived local URL or S3 presigned URL. Object keys are never public URLs. The `actorId`
+query parameter is a temporary development authorization input; it is not a substitute for an
+authenticated security context. Real authentication and RBAC are planned for the next security
+milestone.
 
 Successful responses contain:
 

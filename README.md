@@ -62,6 +62,21 @@ Supported environment variables:
 
 ## Planning
 
+### Current implementation status
+
+The project is being developed as an object-oriented Spring Boot client-server modular monolith.
+Clients use JSON REST endpoints. Implemented and tested functionality currently includes
+configurable activity types, work-entry capture and validation, relational evidence
+metadata/versioning, private storage policies, a local storage adapter, and an available S3
+adapter. The source uses explicit Java classes rather than records so the object model remains
+understandable and explainable.
+
+Authentication/RBAC, first-party attendance and reconciliation, submissions, verification,
+dashboards, notifications, reporting, frontend work, and verified AWS deployment remain planned
+milestones. See
+[`docs/wiki/Implementation-Status.md`](docs/wiki/Implementation-Status.md) for the exact
+boundary between implemented code and the future plan.
+
 ### Current-system analysis
 
 This analysis is based only on the supplied attendance register, Evidence of Work emails,

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/work-entries/{workEntryId}/evidence")
@@ -39,5 +40,36 @@ public class EvidenceController {
         return new ApiError("NOT_FOUND", exception.getMessage());
     }
 
-    public record ApiError(String code, String message) {}
+        public static final class ApiError {
+        private final String code;
+        private final String message;
+
+        public ApiError(String code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public String code() { return code; }
+        public String getCode() { return code; }
+
+        public String message() { return message; }
+        public String getMessage() { return message; }
+
+        @Override
+        public boolean equals(Object object) {
+            if (this == object) return true;
+            if (!(object instanceof ApiError other)) return false;
+            return Objects.equals(code, other.code) && Objects.equals(message, other.message);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(code, message);
+        }
+
+        @Override
+        public String toString() {
+            return "ApiError[code=" + code + ", message=" + message + "]";
+        }
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -85,6 +86,39 @@ public class WorkEntryService {
         return new ValidatedWorkEntry(grossMinutes - request.breakMinutes(), request.breakMinutes());
     }
 
-    private record ValidatedWorkEntry(int durationMinutes, int breakMinutes) {
+    private static final class ValidatedWorkEntry {
+        private final int durationMinutes;
+        private final int breakMinutes;
+
+        private ValidatedWorkEntry(int durationMinutes, int breakMinutes) {
+            this.durationMinutes = durationMinutes;
+            this.breakMinutes = breakMinutes;
+        }
+
+        private int durationMinutes() {
+            return durationMinutes;
+        }
+
+        private int breakMinutes() {
+            return breakMinutes;
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (this == object) return true;
+            if (!(object instanceof ValidatedWorkEntry other)) return false;
+            return durationMinutes == other.durationMinutes && breakMinutes == other.breakMinutes;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(durationMinutes, breakMinutes);
+        }
+
+        @Override
+        public String toString() {
+            return "ValidatedWorkEntry[durationMinutes=" + durationMinutes
+                    + ", breakMinutes=" + breakMinutes + "]";
+        }
     }
 }

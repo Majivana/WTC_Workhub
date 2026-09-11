@@ -2,7 +2,9 @@
 
 Security priorities are server-side RBAC, secure authentication, private S3 objects, upload
 validation, secret management, HTTPS, VPC isolation, least-privilege IAM, audit logging,
-location-data minimization, and protected selfie access.
+location-data minimization, and protected selfie access. The current code implements storage
+privacy and upload validation; authentication, RBAC, and production identity enforcement remain
+planned work.
 
 Evidence uses the `evidence/` object-key namespace. Attendance selfies use the separate
 `attendance-selfies/` namespace and accept only JPEG or PNG files up to 2 MB. Evidence
@@ -13,3 +15,7 @@ configured.
 The local storage adapter generates non-public `local-storage://` references and never
 requires real personal images. Selfie retention, deletion, legal hold, and exact access
 retention periods remain unresolved policy decisions until confirmed by the project owner.
+
+Private-object authorization currently accepts a caller-supplied `actorId` so the local
+workflow can exercise owner/supervisor/administrator rules before authentication exists. This
+must be replaced with the authenticated principal from Spring Security before production use.
