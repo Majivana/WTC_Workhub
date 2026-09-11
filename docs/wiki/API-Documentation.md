@@ -13,7 +13,9 @@ Accept: application/json
 
 Activity types are configurable records. `GET /api/activity-types` returns active types;
 pass `includeInactive=true` to include disabled types. Supervisors or administrators can
-create, update, and delete types with `POST`, `PUT /{id}`, and `DELETE /{id}`.
+create and update types with `POST` and `PUT /{id}`. `DELETE /{id}` deactivates the type
+instead of removing it, preserving historical work-entry references. Duplicate names are
+rejected.
 
 Work entries must reference an existing active activity type.
 
@@ -23,7 +25,9 @@ Work entries must reference an existing active activity type.
 object metadata (`objectKey`, `mediaType`, `sizeBytes`, `checksum`, `purpose`, and
 `createdBy`). File bytes are not accepted or stored by this API. Only PDF, JPEG, and PNG
 metadata is accepted, with a positive size up to 10 MB and a 64-character SHA-256 checksum.
-`GET` on the same path returns the latest relational metadata.
+Media types, checksums, object keys, and purposes are normalized before storage. Each
+successful upload creates the next evidence version, and `GET` on the same path returns the
+latest relational metadata.
 
 Successful responses contain:
 

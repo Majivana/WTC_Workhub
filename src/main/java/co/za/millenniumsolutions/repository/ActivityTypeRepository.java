@@ -35,7 +35,13 @@ public class ActivityTypeRepository extends RepositorySupport {
                 .stream().findFirst();
     }
 
-    public void deleteById(String id) {
-        update("DELETE FROM activity_type WHERE id = ?", id);
+    public boolean existsByName(String name, String excludedId) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM activity_type WHERE name = ? AND id <> ?",
+                Integer.class, name, excludedId) > 0;
+    }
+
+    public void deactivateById(String id) {
+        update("UPDATE activity_type SET active = 0 WHERE id = ?", id);
     }
 }

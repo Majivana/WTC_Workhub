@@ -10,6 +10,7 @@ import co.za.millenniumsolutions.repository.EvidenceVersionRepository;
 import co.za.millenniumsolutions.repository.PrivateObjectReferenceRepository;
 import co.za.millenniumsolutions.repository.WorkEntryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.NoSuchElementException;
@@ -35,21 +36,25 @@ public class EvidenceService {
         this.objects = objects;
     }
 
+    @Transactional
     public EvidenceMetadataResponse upload(String workEntryId, EvidenceUploadRequest request) {
         workEntries.findById(workEntryId)
                 .orElseThrow(() -> new NoSuchElementException("Unknown work entry: " + workEntryId));
         validate(request);
 
+        String mediaType = request.mediaType().trim().toLowerCase();
+        String objectKey = request.objectKey().trim();
+        String purpose = request.purpose().trim();
         Evidence current = evidence.findByWorkEntryId(workEntryId)
                 .orElseGet(() -> evidence.save(new Evidence(UUID.randomUUID().toString(), workEntryId, "DRAFT")));
         int versionNumber = versions.nextVersionNumber(current.id());
         String objectId = UUID.randomUUID().toString();
         Instant now = Instant.now();
-        PrivateObjectReference object = objects.save(new PrivateObjectReference(objectId, request.objectKey(),
-                request.mediaType(), request.sizeBytes(), request.checksum(), request.purpose(),
+        PrivateObjectReference object = objects.save(new PrivateObjectReference(objectId, objectKey,
+                mediaType, request.sizeBytes(), request.checksum().trim().toLowerCase(), purpose,
                 request.createdBy(), now));
         EvidenceVersion version = versions.save(new EvidenceVersion(UUID.randomUUID().toString(), current.id(),
-                versionNumber, objectId, request.checksum(), now));
+                versionNumber, objectId, request.checksum().trim().toLowerCase(), now));
         return EvidenceMetadataResponse.from(current, version, object);
     }
 
@@ -74,16 +79,16 @@ public class EvidenceService {
                 blank(request.checksum()) || blank(request.purpose())) {
             throw new IllegalArgumentException("Object key, media type, checksum and purpose are required");
         }
-        if (request.objectKey().startsWith("/") || request.objectKey().contains("..")) {
+        if (request.objectKey().trim().startsWith("/") || request.objectKey().contains("..")) {
             throw new IllegalArgumentException("Object key must be a private relative key");
         }
-        if (!ALLOWED_MEDIA_TYPES.contains(request.mediaType().toLowerCase())) {
+        if (!ALLOWED_MEDIA_TYPES.contains(request.mediaType().trim().toLowerCase())) {
             throw new IllegalArgumentException("Unsupported evidence media type");
         }
         if (request.sizeBytes() <= 0 || request.sizeBytes() > MAX_SIZE_BYTES) {
             throw new IllegalArgumentException("Evidence size must be between 1 byte and 10 MB");
         }
-        if (!request.checksum().matches("(?i)^[a-f0-9]{64}$")) {
+        if (!request.checksum().trim().matches("(?i)^[a-f0-9]{64}$")) {
             throw new IllegalArgumentException("Checksum must be a SHA-256 hexadecimal value");
         }
     }

@@ -32,20 +32,24 @@ public class ActivityTypeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ActivityType create(@RequestBody ActivityTypeRequest request) {
-        return activities.save(toActivityType(UUID.randomUUID().toString(), request));
+        ActivityType activity = toActivityType(UUID.randomUUID().toString(), request);
+        ensureNameAvailable(activity);
+        return activities.save(activity);
     }
 
     @PutMapping("/{id}")
     public ActivityType update(@PathVariable String id, @RequestBody ActivityTypeRequest request) {
         get(id);
-        return activities.save(toActivityType(id, request));
+        ActivityType activity = toActivityType(id, request);
+        ensureNameAvailable(activity);
+        return activities.save(activity);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {
         get(id);
-        activities.deleteById(id);
+        activities.deactivateById(id);
     }
 
     private ActivityType toActivityType(String id, ActivityTypeRequest request) {
@@ -53,6 +57,12 @@ public class ActivityTypeController {
             throw new IllegalArgumentException("Activity name is required");
         }
         return new ActivityType(id, request.name().trim(), request.active() == null || request.active());
+    }
+
+    private void ensureNameAvailable(ActivityType activity) {
+        if (activities.existsByName(activity.name(), activity.id())) {
+            throw new IllegalArgumentException("Activity name already exists");
+        }
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
