@@ -19,6 +19,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@IsolatedSqliteTest
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("integration")

@@ -15,6 +15,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.*;
 
+@IsolatedSqliteTest
 @SpringBootTest
 @ActiveProfiles("integration")
 class DatabaseIntegrationProfileTests {

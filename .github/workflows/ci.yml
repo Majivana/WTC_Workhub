@@ -1,33 +1,228 @@
-name: CI
+name: CI and delivery
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_staging:
+        description: Deploy this main-branch image to the protected staging environment
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+concurrency:
+  group: workhub-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  JAVA_VERSION: '21'
+
+jobs:
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Set up Java 21
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: ${{ env.JAVA_VERSION }}
           cache: maven
+      - name: Compile production and test sources
+        run: mvn --batch-mode --no-transfer-progress -DskipTests test-compile
 
-      - name: Run tests
-        run: mvn test
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: compile
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Run unit and integration tests
+        run: mvn --batch-mode --no-transfer-progress test
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ github.run_id }}
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+          retention-days: 14
 
-      - name: Package application
-        run: mvn package
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Build deployable artifact
+        run: mvn --batch-mode --no-transfer-progress -DskipTests package
+      - name: Upload application artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: workhub-jar-${{ github.sha }}
+          path: target/*.jar
+          if-no-files-found: error
+          retention-days: 14
+
+  container-smoke:
+    name: Container build and smoke test
+    runs-on: ubuntu-latest
+    needs: package
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Build container image
+        run: docker build --pull --tag wtc-workhub:ci .
+      - name: Start container and verify health
+        run: |
+          set -euo pipefail
+          docker run --detach --rm \
+            --name wtc-workhub-ci \
+            --publish 8080:8080 \
+            wtc-workhub:ci
+          trap 'docker stop wtc-workhub-ci >/dev/null 2>&1 || true' EXIT
+
+          for attempt in $(seq 1 60); do
+            health="$(docker inspect --format '{{.State.Health.Status}}' wtc-workhub-ci 2>/dev/null || true)"
+            if [ "$health" = healthy ]; then
+              curl --fail --silent --show-error http://localhost:8080/actuator/health
+              exit 0
+            fi
+
+            state="$(docker inspect --format '{{.State.Status}}' wtc-workhub-ci 2>/dev/null || true)"
+            if [ "$state" = exited ]; then
+              docker logs wtc-workhub-ci
+              exit 1
+            fi
+            sleep 2
+          done
+
+          docker logs wtc-workhub-ci
+          echo 'Container did not become healthy within 120 seconds.'
+          exit 1
+      - name: Save verified container image
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: docker save wtc-workhub:ci --output workhub-image.tar
+      - name: Upload verified container image
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: workhub-image-${{ github.sha }}
+          path: workhub-image.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-image:
+    name: Publish immutable image
+    runs-on: ubuntu-latest
+    needs: container-smoke
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.deploy_staging))
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set lowercase image name
+        id: image
+        run: |
+          repository="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "image=${repository}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download verified container image
+        uses: actions/download-artifact@v4
+        with:
+          name: workhub-image-${{ github.sha }}
+      - name: Publish the verified commit-tagged image
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          docker load --input workhub-image.tar
+          docker tag wtc-workhub:ci "$IMAGE"
+          docker push "$IMAGE"
+
+  deploy-staging:
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    needs: publish-image
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_staging
+    environment: staging
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Check deployment configuration
+        env:
+          DEPLOYMENT_READY: ${{ vars.STAGING_DEPLOYMENT_READY }}
+          AWS_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+          TASK_DEFINITION: ${{ vars.ECS_TASK_DEFINITION }}
+          CONTAINER_NAME: ${{ vars.ECS_CONTAINER_NAME }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main || { echo 'Staging deploys are restricted to main.'; exit 1; }
+          test "$DEPLOYMENT_READY" = true || { echo 'Staging is not enabled. Complete the prerequisites in docs/ci-cd.md first.'; exit 1; }
+          test -n "$AWS_ROLE_ARN" -a -n "$AWS_REGION" -a -n "$ECS_CLUSTER" -a -n "$ECS_SERVICE" -a -n "$TASK_DEFINITION" -a -n "$CONTAINER_NAME" || { echo 'One or more required staging environment variables are missing.'; exit 1; }
+          test -f "$TASK_DEFINITION" || { echo "Task definition not found: $TASK_DEFINITION"; exit 1; }
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Render task definition with this commit image
+        id: task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ vars.ECS_TASK_DEFINITION }}
+          container-name: ${{ vars.ECS_CONTAINER_NAME }}
+          image: ${{ needs.publish-image.outputs.image }}
+      - name: Deploy ECS service and wait for stability
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-definition.outputs.task-definition }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          service: ${{ vars.ECS_SERVICE }}
+          wait-for-service-stability: true

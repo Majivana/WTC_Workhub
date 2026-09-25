@@ -54,6 +54,10 @@ Completed on 2026-09-25:
   `@startuml`/`@enduml` markers.
 - SQLite integration is exercised by the full Maven run. PostgreSQL 16 schema smoke test — expected
   compatibility failure at `PRAGMA foreign_keys = ON`; see [database guide](../database/README.md).
+- Test repeatability: every `@SpringBootTest` now activates the integration profile and applies
+  `src/test/resources/test-database-reset.sql` before each method. This prevents the test suite from
+  using `workhub-local.db` and clears foreign-key dependents before fixture setup. The four suites
+  from the reported CI failure and the complete 45-test build pass after this change.
 - AWS — no account resources were provisioned or tested; all AWS infrastructure remains planned.
 
 The first container launch used a host data directory not writable by forced UID 10001 and exited.

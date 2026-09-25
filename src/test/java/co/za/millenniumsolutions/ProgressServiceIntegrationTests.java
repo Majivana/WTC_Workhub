@@ -21,6 +21,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@IsolatedSqliteTest
 @SpringBootTest
 class ProgressServiceIntegrationTests {
 

@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@IsolatedSqliteTest
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(username = "user-student-demo", roles = "STUDENT")

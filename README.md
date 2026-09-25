@@ -32,8 +32,12 @@ make docker-build
 make docker-run
 ```
 
-GitHub Actions runs tests and packages the application on pushes to `main` and pull requests
-targeting `main`. A failed command causes the workflow to fail visibly.
+GitHub Actions runs separate compile, test, package, container-build/smoke, image-publish, and
+staging-deploy stages. Pull requests run through the health-checked container stage but cannot
+publish images or access AWS. Pushes to `main` publish a commit-tagged image to GHCR. Staging
+deployment is a manual, protected, OIDC-based workflow and remains gated until AWS is provisioned
+and PostgreSQL support is verified. See the [CI/CD guide](docs/ci-cd.md) for stage behavior and
+setup requirements.
 
 ### Local SQLite setup
 
