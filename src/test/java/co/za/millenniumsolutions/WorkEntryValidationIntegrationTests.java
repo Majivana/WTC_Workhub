@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "user-student-demo", roles = "STUDENT")
 class WorkEntryValidationIntegrationTests {
 
     @Autowired MockMvc mockMvc;
@@ -34,6 +36,7 @@ class WorkEntryValidationIntegrationTests {
     void setUp() {
         jdbc.execute("DELETE FROM work_entry_timing");
         jdbc.execute("DELETE FROM work_entry");
+        jdbc.execute("DELETE FROM notification");
         jdbc.execute("DELETE FROM app_user");
         jdbc.execute("DELETE FROM activity_type");
         jdbc.execute("DELETE FROM work_period");

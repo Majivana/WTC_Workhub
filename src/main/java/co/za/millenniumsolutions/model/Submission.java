@@ -22,6 +22,10 @@ public final class Submission {
     public String status() { return status; }
     public String getStatus() { return status; }
 
+    public Submission withStatus(String nextStatus) {
+        return new Submission(id, workEntryId, nextStatus);
+    }
+
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;

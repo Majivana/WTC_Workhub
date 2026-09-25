@@ -37,6 +37,7 @@ class CorePersistenceIntegrationTests {
     @BeforeEach
     void clearIntegrationRows() {
         jdbc.execute("DELETE FROM audit_log");
+        jdbc.execute("DELETE FROM notification");
         jdbc.execute("DELETE FROM verification");
         jdbc.execute("DELETE FROM submission");
         jdbc.execute("DELETE FROM evidence_version");

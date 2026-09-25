@@ -7,6 +7,7 @@ import co.za.millenniumsolutions.model.EvidenceVersion;
 import co.za.millenniumsolutions.model.PrivateObjectReference;
 import co.za.millenniumsolutions.repository.EvidenceRepository;
 import co.za.millenniumsolutions.repository.EvidenceVersionRepository;
+import co.za.millenniumsolutions.repository.AuditLogRepository;
 import co.za.millenniumsolutions.repository.PrivateObjectReferenceRepository;
 import co.za.millenniumsolutions.repository.WorkEntryRepository;
 import co.za.millenniumsolutions.storage.StorageObjectRequest;
@@ -28,15 +29,17 @@ public class EvidenceService {
     private final EvidenceVersionRepository versions;
     private final PrivateObjectReferenceRepository objects;
     private final StoragePort storage;
+    private final AuditLogRepository auditLogs;
 
     public EvidenceService(WorkEntryRepository workEntries, EvidenceRepository evidence,
                            EvidenceVersionRepository versions, PrivateObjectReferenceRepository objects,
-                           StoragePort storage) {
+                           StoragePort storage, AuditLogRepository auditLogs) {
         this.workEntries = workEntries;
         this.evidence = evidence;
         this.versions = versions;
         this.objects = objects;
         this.storage = storage;
+        this.auditLogs = auditLogs;
     }
 
     @Transactional
@@ -59,9 +62,16 @@ public class EvidenceService {
                 mediaType, request.sizeBytes(), checksum, purpose,
                 request.createdBy(), now));
         EvidenceVersion version = versions.save(new EvidenceVersion(UUID.randomUUID().toString(), current.id(),
-                versionNumber, objectId, checksum, now));
+                versionNumber, objectId, checksum, normalizeNotes(request.changeNotes()), now));
+        auditLogs.save(new co.za.millenniumsolutions.model.AuditLog(
+                UUID.randomUUID().toString(), request.createdBy(), "EVIDENCE_VERSION", version.id(),
+                "UPLOADED", "version=" + versionNumber, now));
         return EvidenceMetadataResponse.from(current, version, object,
                 upload.uploadUrl(), upload.presigned());
+    }
+
+    private String normalizeNotes(String notes) {
+        return notes == null || notes.isBlank() ? null : notes.trim();
     }
 
     public EvidenceMetadataResponse get(String workEntryId) {

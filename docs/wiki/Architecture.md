@@ -11,10 +11,13 @@ The Java implementation uses ordinary object-oriented classes with private field
 accessors, and enums where a fixed set of values is appropriate. This keeps the code explicit and
 explainable while the project is being learned and assessed.
 
-The currently implemented path is work-entry capture, configurable activity types, evidence
-metadata/versioning, private-object storage policy, local storage, and an available S3 adapter.
-Authentication, authorization, attendance workflows, submissions, verification, dashboards, and
-deployment remain separate planned modules and are not implied by the current implementation.
+Implemented modules include authentication and permission-based authorization, work-period
+progress, work-entry capture, configurable activity types, evidence metadata/versioning,
+submissions, verification history, first-party attendance, dashboards, notifications,
+escalations, and CSV reporting. The active local persistence path is SQLite and local object
+storage; an S3 adapter exists but has not been tested against AWS. The browser frontend and AWS
+deployment remain planned. RDS PostgreSQL and Aurora PostgreSQL are not compatible with the
+current SQLite-specific schema and migration code.
 
 See the PlantUML sources in `docs/diagrams/`:
 

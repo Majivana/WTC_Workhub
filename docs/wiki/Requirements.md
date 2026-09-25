@@ -16,7 +16,8 @@
 
 - Secure by default.
 - Testable domain rules.
-- Portable relational persistence.
+- Relational persistence that can be moved to a supported managed database; PostgreSQL portability
+  remains a future requirement and is not implemented by the current SQLite-only persistence code.
 - Observable deployed services.
 - Explicit error handling.
 - No unsupported claims about AWS or external integrations.

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -20,6 +21,7 @@ public class ProgressController {
     }
 
     @GetMapping("/users/{userId}/work-periods/{workPeriodId}/progress")
+    @PreAuthorize("@authorizationService.canAccessUser(authentication, #userId)")
     public WeeklyProgressResponse getProgress(@PathVariable String userId,
                                               @PathVariable String workPeriodId) {
         try {

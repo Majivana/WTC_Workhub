@@ -6,6 +6,8 @@ import co.za.millenniumsolutions.model.WorkPeriod;
 import co.za.millenniumsolutions.repository.WorkEntryRepository;
 import co.za.millenniumsolutions.repository.WorkPeriodRepository;
 import co.za.millenniumsolutions.repository.ActivityTypeRepository;
+import co.za.millenniumsolutions.security.AuthorizationService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -20,12 +22,14 @@ public class WorkEntryService {
     private final WorkEntryRepository workEntries;
     private final WorkPeriodRepository workPeriods;
     private final ActivityTypeRepository activities;
+    private final AuthorizationService authorization;
 
     public WorkEntryService(WorkEntryRepository workEntries, WorkPeriodRepository workPeriods,
-                            ActivityTypeRepository activities) {
+                            ActivityTypeRepository activities, AuthorizationService authorization) {
         this.workEntries = workEntries;
         this.workPeriods = workPeriods;
         this.activities = activities;
+        this.authorization = authorization;
     }
 
     public WorkEntry create(String userId, String workPeriodId, WorkEntryRequest request) {
@@ -37,6 +41,13 @@ public class WorkEntryService {
     }
 
     public WorkEntry update(String id, WorkEntryRequest request) {
+        return update(id, request, null);
+    }
+
+    public WorkEntry update(String id, WorkEntryRequest request, Authentication authentication) {
+        if (authentication != null && !authorization.canEditWorkEntry(authentication, id)) {
+            throw new SecurityException("User is not authorized to edit this work entry");
+        }
         WorkEntry existing = workEntries.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Unknown work entry: " + id));
         if (!"DRAFT".equals(existing.status())) {

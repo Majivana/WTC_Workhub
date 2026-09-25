@@ -4,6 +4,8 @@ import co.za.millenniumsolutions.model.WorkEntry;
 import co.za.millenniumsolutions.service.WorkEntryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -19,6 +21,7 @@ public class WorkEntryController {
     }
 
     @PostMapping("/users/{userId}/work-periods/{workPeriodId}/work-entries")
+    @PreAuthorize("@authorizationService.canAccessUser(authentication, #userId)")
     @ResponseStatus(HttpStatus.CREATED)
     public WorkEntryResponse create(@PathVariable String userId,
                                     @PathVariable String workPeriodId,
@@ -27,9 +30,11 @@ public class WorkEntryController {
     }
 
     @PutMapping("/work-entries/{id}")
+    @PreAuthorize("@authorizationService.canEditWorkEntry(authentication, #id)")
     public WorkEntryResponse update(@PathVariable String id,
-                                    @RequestBody WorkEntryRequest request) {
-        return WorkEntryResponse.from(workEntryService.update(id, request));
+                                    @RequestBody WorkEntryRequest request,
+                                    Authentication authentication) {
+        return WorkEntryResponse.from(workEntryService.update(id, request, authentication));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -42,6 +47,12 @@ public class WorkEntryController {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError notEditable(IllegalStateException exception) {
         return new ApiError("WORK_ENTRY_NOT_EDITABLE", exception.getMessage());
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiError forbidden(SecurityException exception) {
+        return new ApiError("WORK_ENTRY_FORBIDDEN", exception.getMessage());
     }
 
     @ExceptionHandler(NoSuchElementException.class)

@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: integration
+  datasource:
+    url: jdbc:sqlite:target/workhub-integration.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+
+app:
+  seed:
+    enabled: false

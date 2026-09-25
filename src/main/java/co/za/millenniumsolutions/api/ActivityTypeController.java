@@ -4,6 +4,7 @@ import co.za.millenniumsolutions.model.ActivityType;
 import co.za.millenniumsolutions.repository.ActivityTypeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,6 +32,7 @@ public class ActivityTypeController {
     }
 
     @PostMapping
+    @PreAuthorize("@authorizationService.canManageActivity(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     public ActivityType create(@RequestBody ActivityTypeRequest request) {
         ActivityType activity = toActivityType(UUID.randomUUID().toString(), request);
@@ -39,6 +41,7 @@ public class ActivityTypeController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("@authorizationService.canManageActivity(authentication)")
     public ActivityType update(@PathVariable String id, @RequestBody ActivityTypeRequest request) {
         get(id);
         ActivityType activity = toActivityType(id, request);
@@ -47,6 +50,7 @@ public class ActivityTypeController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("@authorizationService.canManageActivity(authentication)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {
         get(id);

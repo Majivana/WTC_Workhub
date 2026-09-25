@@ -9,17 +9,25 @@ public class EvidenceUploadRequest {
     private String checksum;
     private String purpose;
     private String createdBy;
+    private String changeNotes;
 
     public EvidenceUploadRequest() {
     }
 
-    public EvidenceUploadRequest(String objectKey, String mediaType, long sizeBytes, String checksum, String purpose, String createdBy) {
+    public EvidenceUploadRequest(String objectKey, String mediaType, long sizeBytes, String checksum, String purpose,
+                                 String createdBy) {
+        this(objectKey, mediaType, sizeBytes, checksum, purpose, createdBy, null);
+    }
+
+    public EvidenceUploadRequest(String objectKey, String mediaType, long sizeBytes, String checksum, String purpose,
+                                 String createdBy, String changeNotes) {
         this.objectKey = objectKey;
         this.mediaType = mediaType;
         this.sizeBytes = sizeBytes;
         this.checksum = checksum;
         this.purpose = purpose;
         this.createdBy = createdBy;
+        this.changeNotes = changeNotes;
     }
 
     public String objectKey() { return objectKey; }
@@ -46,20 +54,29 @@ public class EvidenceUploadRequest {
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 
+    public String changeNotes() { return changeNotes; }
+    public String getChangeNotes() { return changeNotes; }
+    public void setChangeNotes(String changeNotes) { this.changeNotes = changeNotes; }
+
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
         if (!(object instanceof EvidenceUploadRequest other)) return false;
-        return Objects.equals(objectKey, other.objectKey) && Objects.equals(mediaType, other.mediaType) && sizeBytes == other.sizeBytes && Objects.equals(checksum, other.checksum) && Objects.equals(purpose, other.purpose) && Objects.equals(createdBy, other.createdBy);
+        return Objects.equals(objectKey, other.objectKey) && Objects.equals(mediaType, other.mediaType)
+                && sizeBytes == other.sizeBytes && Objects.equals(checksum, other.checksum)
+                && Objects.equals(purpose, other.purpose) && Objects.equals(createdBy, other.createdBy)
+                && Objects.equals(changeNotes, other.changeNotes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(objectKey, mediaType, sizeBytes, checksum, purpose, createdBy);
+        return Objects.hash(objectKey, mediaType, sizeBytes, checksum, purpose, createdBy, changeNotes);
     }
 
     @Override
     public String toString() {
-        return "EvidenceUploadRequest[objectKey=" + objectKey + ", mediaType=" + mediaType + ", sizeBytes=" + sizeBytes + ", checksum=" + checksum + ", purpose=" + purpose + ", createdBy=" + createdBy + "]";
+        return "EvidenceUploadRequest[objectKey=" + objectKey + ", mediaType=" + mediaType + ", sizeBytes=" + sizeBytes
+                + ", checksum=" + checksum + ", purpose=" + purpose + ", createdBy=" + createdBy
+                + ", changeNotes=" + changeNotes + "]";
     }
 }

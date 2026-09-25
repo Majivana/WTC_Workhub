@@ -3,6 +3,7 @@ package co.za.millenniumsolutions.api;
 import co.za.millenniumsolutions.service.EvidenceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -17,6 +18,7 @@ public class EvidenceController {
     }
 
     @PostMapping
+    @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
     @ResponseStatus(HttpStatus.CREATED)
     public EvidenceMetadataResponse upload(@PathVariable String workEntryId,
                                            @RequestBody EvidenceUploadRequest request) {
@@ -24,6 +26,7 @@ public class EvidenceController {
     }
 
     @GetMapping
+    @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
     public EvidenceMetadataResponse get(@PathVariable String workEntryId) {
         return evidence.get(workEntryId);
     }

@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -31,5 +32,14 @@ public class WorkPeriodRepository extends RepositorySupport {
                         id)
                 .stream()
                 .findFirst();
+    }
+
+    public List<WorkPeriod> findActiveOn(LocalDate date) {
+        return jdbc.query("SELECT id,name,start_date,end_date,weekly_hours_target FROM work_period " +
+                        "WHERE start_date <= ? AND end_date >= ? ORDER BY start_date,id",
+                (rs, rowNum) -> new WorkPeriod(rs.getString("id"), rs.getString("name"),
+                        LocalDate.parse(rs.getString("start_date")),
+                        LocalDate.parse(rs.getString("end_date")),
+                        rs.getBigDecimal("weekly_hours_target")), date.toString(), date.toString());
     }
 }

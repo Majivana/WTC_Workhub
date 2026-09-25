@@ -44,6 +44,7 @@ class ProgressServiceIntegrationTests {
         jdbc.execute("DELETE FROM private_object_reference");
         jdbc.execute("DELETE FROM attendance_session");
         jdbc.execute("DELETE FROM work_entry");
+        jdbc.execute("DELETE FROM notification");
         jdbc.execute("DELETE FROM app_user");
         jdbc.execute("DELETE FROM activity_type");
         jdbc.execute("DELETE FROM work_period");

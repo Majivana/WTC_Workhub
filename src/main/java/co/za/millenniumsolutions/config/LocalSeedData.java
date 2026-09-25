@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
 public class LocalSeedData {
 
-    public LocalSeedData(JdbcTemplate jdbcTemplate) {
+    public LocalSeedData(JdbcTemplate jdbcTemplate, org.springframework.security.crypto.password.PasswordEncoder encoder) {
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO institution (id, name)
                 VALUES ('institution-wtc', 'WeThinkCode_')
@@ -36,13 +36,13 @@ public class LocalSeedData {
                 """);
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO app_user
-                    (id, username, display_name, system_role, work_role_id, campus_id)
+                    (id, username, display_name, system_role, work_role_id, campus_id, password_hash)
                 VALUES
                     ('user-student-demo', 'student.demo', 'Demo Student', 'STUDENT',
-                     'role-peer-tutor', 'campus-cape-town'),
+                     'role-peer-tutor', 'campus-cape-town', ?),
                     ('user-supervisor-demo', 'supervisor.demo', 'Demo Supervisor', 'SUPERVISOR',
-                     NULL, 'campus-cape-town')
-                """);
+                     NULL, 'campus-cape-town', ?)
+                """, encoder.encode("demo-student-password"), encoder.encode("demo-supervisor-password"));
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO work_period
                     (id, name, start_date, end_date, weekly_hours_target)

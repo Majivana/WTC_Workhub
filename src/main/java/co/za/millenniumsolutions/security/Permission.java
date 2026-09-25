@@ -1,0 +1,10 @@
+package co.za.millenniumsolutions.security;
+
+public enum Permission {
+    USER_READ, USER_MANAGE,
+    ORGANIZATION_READ, ORGANIZATION_MANAGE,
+    ASSIGNMENT_MANAGE,
+    WORK_ENTRY_READ, WORK_ENTRY_MANAGE,
+    SUBMISSION_REVIEW, VERIFICATION_REVIEW,
+    REPORT_READ
+}

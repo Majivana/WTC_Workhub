@@ -14,19 +14,20 @@ public class EvidenceVersionRepository extends RepositorySupport {
     }
 
     public EvidenceVersion save(EvidenceVersion x) {
-        update("INSERT INTO evidence_version(id,evidence_id,version_number,private_object_reference_id,checksum,uploaded_at) " +
-                        "VALUES (?,?,?,?,?,COALESCE(?,CURRENT_TIMESTAMP))",
+        update("INSERT INTO evidence_version(id,evidence_id,version_number,private_object_reference_id,checksum,change_notes,uploaded_at) " +
+                        "VALUES (?,?,?,?,?,?,COALESCE(?,CURRENT_TIMESTAMP))",
                 x.id(), x.evidenceId(), x.versionNumber(), x.privateObjectReferenceId(), x.checksum(),
-                x.uploadedAt() == null ? null : x.uploadedAt().toString());
+                x.changeNotes(), x.uploadedAt() == null ? null : x.uploadedAt().toString());
         return findById(x.id()).orElse(x);
     }
 
     public Optional<EvidenceVersion> findById(String id) {
-        return jdbc.query("SELECT id,evidence_id,version_number,private_object_reference_id,checksum,uploaded_at " +
+        return jdbc.query("SELECT id,evidence_id,version_number,private_object_reference_id,checksum,change_notes,uploaded_at " +
                         "FROM evidence_version WHERE id = ?",
                         (rs, rowNum) -> new EvidenceVersion(rs.getString("id"), rs.getString("evidence_id"),
                                 rs.getInt("version_number"), rs.getString("private_object_reference_id"),
-                                rs.getString("checksum"), Instant.parse(rs.getString("uploaded_at"))), id)
+                                rs.getString("checksum"), rs.getString("change_notes"),
+                                Instant.parse(rs.getString("uploaded_at"))), id)
                 .stream().findFirst();
     }
 
@@ -35,6 +36,14 @@ public class EvidenceVersionRepository extends RepositorySupport {
                         "ORDER BY version_number DESC LIMIT 1",
                         (rs, rowNum) -> rs.getString("id"), evidenceId)
                 .stream().findFirst();
+    }
+
+    public boolean belongsToWorkEntry(String versionId, String workEntryId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM evidence_version ev JOIN evidence e ON e.id = ev.evidence_id " +
+                        "WHERE ev.id = ? AND e.work_entry_id = ?",
+                Integer.class, versionId, workEntryId);
+        return count != null && count == 1;
     }
 
     public int nextVersionNumber(String evidenceId) {

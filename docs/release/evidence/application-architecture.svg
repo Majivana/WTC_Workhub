@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+<title id="title">WTC Workhub application architecture and deployment status</title>
+<desc id="desc">Implemented local REST application with SQLite and local storage, with AWS services shown as planned.</desc>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#40566f"/></marker>
+  <style>
+    text{font-family:Arial,Helvetica,sans-serif;fill:#183047}.title{font-size:30px;font-weight:700}.subtitle{font-size:16px;fill:#52677c}.head{font-size:19px;font-weight:700}.body{font-size:15px}.small{font-size:13px;fill:#52677c}.box{rx:16;stroke-width:2}.live{fill:#eaf6ef;stroke:#258451}.future{fill:#fff5e5;stroke:#c47a08;stroke-dasharray:9 6}.neutral{fill:#eef3f8;stroke:#55728e}.line{stroke:#40566f;stroke-width:3;fill:none;marker-end:url(#arrow)}.dashed{stroke:#b67510;stroke-width:3;fill:none;stroke-dasharray:9 7;marker-end:url(#arrow)}
+  </style>
+</defs>
+<rect width="1400" height="900" fill="#f7f9fc"/>
+<text x="64" y="64" class="title">WTC Workhub — application architecture</text>
+<text x="64" y="96" class="subtitle">Verified local path (green) · planned AWS path (amber dashed) · status as of 2026-09-25</text>
+
+<rect x="60" y="180" width="210" height="120" class="box neutral"/>
+<text x="165" y="222" text-anchor="middle" class="head">Client</text><text x="165" y="250" text-anchor="middle" class="body">JSON over HTTP</text><text x="165" y="276" text-anchor="middle" class="small">No browser UI shipped</text>
+
+<rect x="350" y="150" width="500" height="510" class="box live"/>
+<text x="600" y="190" text-anchor="middle" class="head">Spring Boot modular monolith · implemented</text>
+<rect x="395" y="220" width="410" height="82" class="box neutral"/><text x="600" y="254" text-anchor="middle" class="head">Authentication + permission checks</text><text x="600" y="280" text-anchor="middle" class="small">Bearer sessions · legacy identity fields remain</text>
+<rect x="395" y="330" width="410" height="130" class="box neutral"/><text x="600" y="365" text-anchor="middle" class="head">REST controllers + application services</text><text x="600" y="396" text-anchor="middle" class="body">Work · progress · evidence · attendance</text><text x="600" y="422" text-anchor="middle" class="body">submissions · verification · dashboards</text><text x="600" y="446" text-anchor="middle" class="body">notifications · escalations · reports</text>
+<rect x="395" y="490" width="410" height="112" class="box neutral"/><text x="600" y="526" text-anchor="middle" class="head">JDBC repositories + SQLite schema</text><text x="600" y="555" text-anchor="middle" class="body">SQLite only · schema.sql uses PRAGMA</text><text x="600" y="580" text-anchor="middle" class="small">PostgreSQL 16 schema check failed</text>
+<rect x="395" y="615" width="410" height="32" fill="#dff0e5" stroke="#258451" rx="10"/><text x="600" y="637" text-anchor="middle" class="small">Health endpoint + operational logs (no selfies / coordinates)</text>
+
+<rect x="950" y="200" width="190" height="115" class="box live"/><text x="1045" y="240" text-anchor="middle" class="head">SQLite file</text><text x="1045" y="269" text-anchor="middle" class="body">Local / integration DB</text><text x="1045" y="294" text-anchor="middle" class="small">Verified</text>
+<rect x="950" y="390" width="190" height="125" class="box live"/><text x="1045" y="430" text-anchor="middle" class="head">Local storage</text><text x="1045" y="459" text-anchor="middle" class="body">Private object refs</text><text x="1045" y="485" text-anchor="middle" class="small">Synthetic local mode</text>
+
+<rect x="1190" y="150" width="165" height="130" class="box future"/><text x="1272" y="190" text-anchor="middle" class="head">RDS PostgreSQL</text><text x="1272" y="220" text-anchor="middle" class="body">Staging proposal</text><text x="1272" y="248" text-anchor="middle" class="small">Not compatible yet</text>
+<rect x="1190" y="340" width="165" height="130" class="box future"/><text x="1272" y="380" text-anchor="middle" class="head">Aurora PostgreSQL</text><text x="1272" y="410" text-anchor="middle" class="body">Production proposal</text><text x="1272" y="438" text-anchor="middle" class="small">Not deployed</text>
+<rect x="1190" y="530" width="165" height="130" class="box future"/><text x="1272" y="570" text-anchor="middle" class="head">Private S3</text><text x="1272" y="600" text-anchor="middle" class="body">Evidence + selfies</text><text x="1272" y="628" text-anchor="middle" class="small">Adapter exists; no AWS test</text>
+
+<rect x="350" y="720" width="500" height="110" class="box future"/><text x="600" y="760" text-anchor="middle" class="head">AWS runtime (planned only)</text><text x="600" y="790" text-anchor="middle" class="body">VPC · ECS/Fargate · IAM roles · CloudWatch · Lambda/EventBridge</text><text x="600" y="815" text-anchor="middle" class="small">No account resources verified or deployed</text>
+
+<path d="M270 240 H350" class="line"/><text x="310" y="226" text-anchor="middle" class="small">HTTPS in target</text>
+<path d="M850 545 H950" class="line"/><text x="900" y="530" text-anchor="middle" class="small">JDBC</text>
+<path d="M805 405 H875 V452 H950" class="line"/><text x="874" y="386" text-anchor="middle" class="small">storage port</text>
+<path d="M850 545 H900 V720 H850" class="dashed"/>
+<path d="M850 760 H1060 V250 H1190" class="dashed"/><path d="M1060 405 H1190" class="dashed"/><path d="M1060 595 H1190" class="dashed"/>
+<text x="64" y="870" class="small">Current verified configuration: local Java application + SQLite + local storage. AWS targets require implementation, budget approval, and deployment testing.</text>
+</svg>

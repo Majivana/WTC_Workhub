@@ -3,6 +3,8 @@ package co.za.millenniumsolutions.api;
 import co.za.millenniumsolutions.service.PrivateObjectAccessService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -18,7 +20,11 @@ public class PrivateObjectController {
 
     @GetMapping("/{objectId}/download")
     public DownloadResponse download(@PathVariable String objectId,
-                                     @RequestParam String actorId) {
+                                     @RequestParam String actorId,
+                                     Authentication authentication) {
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().startsWith("PERM_"))) {
+            actorId = authentication.getName();
+        }
         return new DownloadResponse(access.createDownloadUrl(objectId, actorId));
     }
 

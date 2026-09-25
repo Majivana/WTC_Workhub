@@ -28,6 +28,8 @@ make verify
 make clean
 make run
 make package
+make docker-build
+make docker-run
 ```
 
 GitHub Actions runs tests and packages the application on pushes to `main` and pull requests
@@ -53,29 +55,84 @@ WTC_SEED_DATA=true mvn spring-boot:run
 The seed creates a Cape Town campus, a Peer Tutor work role, a demo student, a demo supervisor,
 the July–August 2026 WorkPeriod with an 18-hour weekly target, and sample activity types.
 
+SQLite is the only supported database at present. RDS PostgreSQL staging and Aurora PostgreSQL
+production are proposed only; neither is deployed, and the current SQLite-specific schema fails a
+PostgreSQL 16 schema smoke test. See [database strategy](docs/database/README.md) and
+[ADRs 015–017](docs/adr/README.md) before using any PostgreSQL endpoint.
+
+### Container usage
+
+The application has a multi-stage Docker build. The build stage compiles the Spring Boot
+artifact with Maven; the runtime stage uses Java 21, runs as the unprivileged `workhub` user,
+and exposes port `8080`.
+
+```bash
+make docker-build
+make docker-run
+curl http://localhost:8080/actuator/health
+make docker-stop
+```
+
+`make docker-run` persists the local SQLite database under `.docker-data/` and does not enable
+demo seed data by default. To enable the explicit development seed:
+
+```bash
+WTC_SEED_DATA=true make docker-run
+```
+
+The image health check polls `/actuator/health`. `make docker-run` accepts `PORT`, `IMAGE`,
+`CONTAINER`, `DATA_DIR`, `STORAGE_PROVIDER`, `S3_BUCKET`, `AWS_REGION`, and
+`S3_PRESIGN_MINUTES` as Make variables. For example, `make docker-run PORT=8081 DATA_DIR=/srv/workhub`
+publishes on port 8081 and persists data at `/srv/workhub`.
+
+For S3 storage, set `STORAGE_PROVIDER=s3`, `S3_BUCKET`, and `AWS_REGION` when running the
+container. Supply AWS credentials through the runtime platform's credential or secret mechanism;
+do not bake credentials or private keys into the image.
+
 Supported environment variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `WTC_DB_PATH` | `./workhub-local.db` | SQLite database file path |
+| `WTC_DB_PATH` | `./workhub-local.db` locally; `/data/workhub.db` in `make docker-run` | SQLite database file path |
 | `WTC_SEED_DATA` | `false` | Explicitly enable deterministic local seed data |
+| `WTC_STORAGE_PROVIDER` | `local` | Evidence storage provider (`local` or `s3`) |
+| `WTC_S3_BUCKET` | empty | S3 bucket when S3 storage is enabled |
+| `AWS_REGION` | `af-south-1` | AWS region used by the S3 adapter |
+| `WTC_S3_PRESIGN_MINUTES` | `10` | Lifetime of generated S3 pre-signed links |
 
 ## Planning
 
 ### Current implementation status
 
-The project is being developed as an object-oriented Spring Boot client-server modular monolith.
-Clients use JSON REST endpoints. Implemented and tested functionality currently includes
-configurable activity types, work-entry capture and validation, relational evidence
-metadata/versioning, private storage policies, a local storage adapter, and an available S3
-adapter. The source uses explicit Java classes rather than records so the object model remains
-understandable and explainable.
+The application is a Spring Boot modular monolith with a JSON REST API. Locally implemented
+features include authentication and permission-based authorization, configurable work periods
+and progress, work entries and activity types, evidence metadata/versioning, submission and
+verification workflows, first-party attendance and reconciliation, dashboards, notifications,
+escalations, CSV reporting, and an idempotent weekly reminder use case. The Java reminder handler
+has automated tests and a ZIP packaging profile.
 
-Authentication/RBAC, first-party attendance and reconciliation, submissions, verification,
-dashboards, notifications, reporting, frontend work, and verified AWS deployment remain planned
-milestones. See
-[`docs/wiki/Implementation-Status.md`](docs/wiki/Implementation-Status.md) for the exact
-boundary between implemented code and the future plan.
+The supported runtime is local SQLite plus local object storage. RDS PostgreSQL and Aurora
+PostgreSQL are proposals only; the SQLite-specific schema fails against PostgreSQL 16. The S3
+adapter exists but no AWS upload/download round trip has been verified. ECS, VPC, IAM, CloudWatch,
+S3, RDS, Aurora, Lambda, and EventBridge have not been deployed in an AWS account. There is no
+browser frontend. Authenticated bearer requests use the principal and centralized authorization,
+but legacy `userId`/`actorId` contract fields and role-only test compatibility remain to be removed.
+See [implementation status](docs/wiki/Implementation-Status.md), [security](docs/wiki/Security.md),
+and [database status](docs/database/README.md) for boundaries and open risks.
+
+### Release readiness
+
+Release evidence and the final acceptance checklist are maintained in
+[`docs/release/README.md`](docs/release/README.md). The timed API demonstration runbook is
+[`docs/release/demo-script.md`](docs/release/demo-script.md). A video has not been recorded or
+published, so no YouTube URL or release tag is claimed. The README is the authoritative quick
+start; the architecture, database, AWS design, security notes, ADRs, journal, wiki sources, and
+diagrams are linked below.
+
+![Application architecture: local verified path and planned AWS services](docs/release/evidence/application-architecture.png)
+
+The milestone and daily delivery dates below are the original project plan. Final local validation
+was run on 25 September 2026; the demo publication and external release gates remain open.
 
 ### Current-system analysis
 
@@ -343,7 +400,10 @@ small, meaningful, and linked to the relevant issue.
 - [Architecture specification](docs/architecture/README.md)
 - [Database specification](docs/database/README.md)
 - [AWS specification](docs/aws/README.md)
+- [Security notes](docs/wiki/Security.md)
+- [Current implementation and limitations](docs/wiki/Implementation-Status.md)
 - [PlantUML diagrams](docs/diagrams/)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Development journal](docs/journal/README.md)
+- [Release evidence, screenshots, demo runbook, and acceptance checklist](docs/release/README.md)
 - [Publish-ready Wiki content](docs/wiki/README.md)

@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.Instant;
 
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "user-student-demo", roles = "STUDENT")
 class StorageSecurityIntegrationTests {
 
     @Autowired MockMvc mockMvc;
@@ -74,6 +76,7 @@ class StorageSecurityIntegrationTests {
         jdbc.execute("DELETE FROM work_entry_timing");
         jdbc.execute("DELETE FROM work_entry");
         jdbc.execute("DELETE FROM audit_log");
+        jdbc.execute("DELETE FROM notification");
         jdbc.execute("DELETE FROM private_object_reference");
         jdbc.execute("DELETE FROM app_user");
         users.save(new User("u-owner", "owner", "Owner", "STUDENT", null, null, true));

@@ -19,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "user-student-demo", roles = "STUDENT")
 class ActivityAndEvidenceIntegrationTests {
 
     @Autowired MockMvc mockMvc;
@@ -44,11 +46,13 @@ class ActivityAndEvidenceIntegrationTests {
 
     @BeforeEach
     void setUp() {
+        jdbc.execute("DELETE FROM audit_log");
         jdbc.execute("DELETE FROM evidence_version");
         jdbc.execute("DELETE FROM evidence");
         jdbc.execute("DELETE FROM private_object_reference");
         jdbc.execute("DELETE FROM work_entry_timing");
         jdbc.execute("DELETE FROM work_entry");
+        jdbc.execute("DELETE FROM notification");
         jdbc.execute("DELETE FROM app_user");
         jdbc.execute("DELETE FROM activity_type");
         jdbc.execute("DELETE FROM work_period");
@@ -104,7 +108,8 @@ class ActivityAndEvidenceIntegrationTests {
                   "sizeBytes": 256,
                   "checksum": "%s",
                   "purpose": " Daily evidence ",
-                  "createdBy": "u-activity"
+                  "createdBy": "u-activity",
+                  "changeNotes": "Initial submission"
                 }
                 """.formatted(checksum);
 
@@ -116,6 +121,7 @@ class ActivityAndEvidenceIntegrationTests {
                         "evidence/[0-9a-f-]+")))
                 .andExpect(jsonPath("$.mediaType").value("application/pdf"))
                 .andExpect(jsonPath("$.checksum").value(checksum))
+                .andExpect(jsonPath("$.changeNotes").value("Initial submission"))
                 .andExpect(jsonPath("$.purpose").value("Daily evidence"));
 
         mockMvc.perform(post("/api/work-entries/w-evidence/evidence")
@@ -128,6 +134,11 @@ class ActivityAndEvidenceIntegrationTests {
                 "SELECT COUNT(*) FROM evidence_version", Integer.class)).isEqualTo(2);
         org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM private_object_reference", Integer.class)).isEqualTo(2);
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM audit_log WHERE action = 'UPLOADED'", Integer.class)).isEqualTo(2);
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT change_notes FROM evidence_version WHERE version_number = 1", String.class))
+                .isEqualTo("Initial submission");
         org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'evidence_content'",
                 Integer.class)).isZero();

@@ -4,4 +4,5 @@ Journal entries record work actually completed. They must not be backdated or fa
 
 ## Entries
 
+- [2026-09-25 — Release evidence and acceptance review](2026-09-25.md)
 - [2026-09-08 — Discovery and documentation foundation](2026-09-08.md)

@@ -10,14 +10,22 @@ public final class EvidenceVersion {
     private final int versionNumber;
     private final String privateObjectReferenceId;
     private final String checksum;
+    private final String changeNotes;
     private final Instant uploadedAt;
 
-    public EvidenceVersion(String id, String evidenceId, int versionNumber, String privateObjectReferenceId, String checksum, Instant uploadedAt) {
+    public EvidenceVersion(String id, String evidenceId, int versionNumber, String privateObjectReferenceId,
+                           String checksum, Instant uploadedAt) {
+        this(id, evidenceId, versionNumber, privateObjectReferenceId, checksum, null, uploadedAt);
+    }
+
+    public EvidenceVersion(String id, String evidenceId, int versionNumber, String privateObjectReferenceId,
+                           String checksum, String changeNotes, Instant uploadedAt) {
         this.id = id;
         this.evidenceId = evidenceId;
         this.versionNumber = versionNumber;
         this.privateObjectReferenceId = privateObjectReferenceId;
         this.checksum = checksum;
+        this.changeNotes = changeNotes;
         this.uploadedAt = uploadedAt;
     }
 
@@ -36,6 +44,9 @@ public final class EvidenceVersion {
     public String checksum() { return checksum; }
     public String getChecksum() { return checksum; }
 
+    public String changeNotes() { return changeNotes; }
+    public String getChangeNotes() { return changeNotes; }
+
     public Instant uploadedAt() { return uploadedAt; }
     public Instant getUploadedAt() { return uploadedAt; }
 
@@ -43,16 +54,21 @@ public final class EvidenceVersion {
     public boolean equals(Object object) {
         if (this == object) return true;
         if (!(object instanceof EvidenceVersion other)) return false;
-        return Objects.equals(id, other.id) && Objects.equals(evidenceId, other.evidenceId) && versionNumber == other.versionNumber && Objects.equals(privateObjectReferenceId, other.privateObjectReferenceId) && Objects.equals(checksum, other.checksum) && Objects.equals(uploadedAt, other.uploadedAt);
+        return Objects.equals(id, other.id) && Objects.equals(evidenceId, other.evidenceId)
+                && versionNumber == other.versionNumber && Objects.equals(privateObjectReferenceId, other.privateObjectReferenceId)
+                && Objects.equals(checksum, other.checksum) && Objects.equals(changeNotes, other.changeNotes)
+                && Objects.equals(uploadedAt, other.uploadedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, evidenceId, versionNumber, privateObjectReferenceId, checksum, uploadedAt);
+        return Objects.hash(id, evidenceId, versionNumber, privateObjectReferenceId, checksum, changeNotes, uploadedAt);
     }
 
     @Override
     public String toString() {
-        return "EvidenceVersion[id=" + id + ", evidenceId=" + evidenceId + ", versionNumber=" + versionNumber + ", privateObjectReferenceId=" + privateObjectReferenceId + ", checksum=" + checksum + ", uploadedAt=" + uploadedAt + "]";
+        return "EvidenceVersion[id=" + id + ", evidenceId=" + evidenceId + ", versionNumber=" + versionNumber
+                + ", privateObjectReferenceId=" + privateObjectReferenceId + ", checksum=" + checksum
+                + ", changeNotes=" + changeNotes + ", uploadedAt=" + uploadedAt + "]";
     }
 }

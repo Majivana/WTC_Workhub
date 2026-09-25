@@ -16,6 +16,7 @@ public final class EvidenceMetadataResponse {
     private final String mediaType;
     private final long sizeBytes;
     private final String checksum;
+    private final String changeNotes;
     private final String purpose;
     private final String createdBy;
     private final Instant uploadedAt;
@@ -24,7 +25,7 @@ public final class EvidenceMetadataResponse {
 
     public EvidenceMetadataResponse(String evidenceId, String workEntryId, String status, int versionNumber,
                                     String objectKey, String mediaType, long sizeBytes, String checksum,
-                                    String purpose, String createdBy, Instant uploadedAt, String uploadUrl,
+                                    String changeNotes, String purpose, String createdBy, Instant uploadedAt, String uploadUrl,
                                     boolean presigned) {
         this.evidenceId = evidenceId;
         this.workEntryId = workEntryId;
@@ -34,6 +35,7 @@ public final class EvidenceMetadataResponse {
         this.mediaType = mediaType;
         this.sizeBytes = sizeBytes;
         this.checksum = checksum;
+        this.changeNotes = changeNotes;
         this.purpose = purpose;
         this.createdBy = createdBy;
         this.uploadedAt = uploadedAt;
@@ -46,7 +48,7 @@ public final class EvidenceMetadataResponse {
                                                  boolean presigned) {
         return new EvidenceMetadataResponse(evidence.id(), evidence.workEntryId(), evidence.status(),
                 version.versionNumber(), object.objectKey(), object.mediaType(), object.sizeBytes(),
-                version.checksum(), object.purpose(), object.createdBy(), version.uploadedAt(),
+                version.checksum(), version.changeNotes(), object.purpose(), object.createdBy(), version.uploadedAt(),
                 uploadUrl, presigned);
     }
 
@@ -66,6 +68,8 @@ public final class EvidenceMetadataResponse {
     public long getSizeBytes() { return sizeBytes; }
     public String checksum() { return checksum; }
     public String getChecksum() { return checksum; }
+    public String changeNotes() { return changeNotes; }
+    public String getChangeNotes() { return changeNotes; }
     public String purpose() { return purpose; }
     public String getPurpose() { return purpose; }
     public String createdBy() { return createdBy; }
@@ -85,6 +89,7 @@ public final class EvidenceMetadataResponse {
                 && Objects.equals(evidenceId, other.evidenceId) && Objects.equals(workEntryId, other.workEntryId)
                 && Objects.equals(status, other.status) && Objects.equals(objectKey, other.objectKey)
                 && Objects.equals(mediaType, other.mediaType) && Objects.equals(checksum, other.checksum)
+                && Objects.equals(changeNotes, other.changeNotes)
                 && Objects.equals(purpose, other.purpose) && Objects.equals(createdBy, other.createdBy)
                 && Objects.equals(uploadedAt, other.uploadedAt) && Objects.equals(uploadUrl, other.uploadUrl);
     }
@@ -92,7 +97,7 @@ public final class EvidenceMetadataResponse {
     @Override
     public int hashCode() {
         return Objects.hash(evidenceId, workEntryId, status, versionNumber, objectKey, mediaType, sizeBytes,
-                checksum, purpose, createdBy, uploadedAt, uploadUrl, presigned);
+                checksum, changeNotes, purpose, createdBy, uploadedAt, uploadUrl, presigned);
     }
 
     @Override

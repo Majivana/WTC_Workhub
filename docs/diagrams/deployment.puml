@@ -1,44 +1,84 @@
 @startuml
-title WTC Workhub AWS Deployment Specification
+title WTC Workhub AWS target design — not deployed
+left to right direction
+skinparam componentStyle rectangle
 
-node "Internet" {
-  actor "Student / Supervisor / Admin" as user
-}
-
-cloud "AWS VPC" {
-  node "Private application subnet" {
-    component "ECS Fargate Service\nSpring Boot Workhub" as ecs
+actor "Student / Supervisor / Admin" as user
+cloud "AWS Region (target)" {
+  node "VPC across 2+ AZs" {
+    node "Public subnets" {
+      component "Application Load Balancer\nACM TLS termination\nHTTP redirects to HTTPS" as alb
+    }
+    node "Private application subnets\nNo public task IPs" {
+      component "ECS Fargate service\nSpring Boot Workhub\nnon-root container" as ecs
+      component "Weekly reminder Lambda\nVPC attached" as reminder
+    }
+    node "Private database subnets" {
+      database "RDS PostgreSQL\nproposed MVP database\nnot supported by current build" as db
+    }
+    component "S3 gateway endpoint" as s3ep
+    component "Interface endpoints\nECR / Logs / Secrets Manager" as endpoints
   }
-
-  database "RDS PostgreSQL\nStaging" as rds
-  database "Aurora PostgreSQL\nProduction" as aurora
+  cloud "Private S3 bucket\nBlock Public Access\nSSE-KMS / TLS only" as s3 {
+    folder "evidence/*" as evidence
+    folder "attendance-selfies/*" as selfies
+  }
+  component "CloudWatch Logs\nfinite retention, encrypted" as logs
+  component "CloudWatch alarms\nECS / ALB / DB health" as alarms
+  component "CloudWatch Lambda logs" as lambdalogs
+  component "EventBridge Scheduler\nweekly schedule (proposed)" as scheduler
+  component "Scheduler delivery DLQ\n(proposed)" as schedulerdlq
+  component "Lambda processing DLQ\n(proposed)" as lambdadlq
+  component "ECR\napproved image" as ecr
+  component "Secrets Manager\nDB credentials" as secrets
+  component "IAM task execution role\nimage pull, logs, secret read" as execrole
+  component "IAM application task role\nobject prefixes only" as taskrole
+  component "IAM Lambda execution role\nlogs, secret, VPC ENI" as lambdarole
+  component "EventBridge invoke role\nInvokeFunction only" as invokerole
+  component "ACM certificate" as acm
 }
 
-cloud "Private S3 bucket" as s3
-component "EventBridge Schedule" as schedule
-component "Lambda\nWeekly Reminder Processor" as lambda
-component "CloudWatch\nLogs and Alarms" as cw
-component "IAM\nTask and Lambda Roles" as iam
+user --> alb : HTTPS 443
+alb --> ecs : app port\nALB SG -> task SG only
+ecs --> db : TLS PostgreSQL 5432\ntask SG -> DB SG only
+reminder --> db : TLS PostgreSQL 5432\nnotification/progress queries
+ecs --> s3ep : HTTPS S3 requests
+s3ep --> s3 : private object API
+ecs ..> s3 : presigned PUT/GET URLs\n(scoped prefixes, short-lived)
+user ..> s3 : direct HTTPS object transfer\n(target flow; selfie path incomplete)
+ecs --> endpoints : HTTPS 443
+endpoints --> ecr : image pull
+endpoints --> logs : stdout/stderr
+endpoints --> secrets : task secret retrieval
+logs --> alarms : metric filters / alarms
+lambdalogs --> alarms : invocation errors / duration
+scheduler --> reminder : scheduled event
+scheduler --> schedulerdlq : target delivery retries exhausted
+reminder --> lambdadlq : async processing retries exhausted
+reminder --> lambdalogs : sanitized run summary
+execrole ..> ecs : assumed by ECS agent
+taskrole ..> ecs : assumed by application
+lambdarole ..> reminder : Lambda execution
+invokerole ..> scheduler : invokes reminder only
+acm ..> alb : TLS certificate
 
-user --> ecs : HTTPS
-ecs --> rds : staging database traffic
-ecs --> aurora : production database traffic
-ecs --> s3 : private evidence/selfie objects
-schedule --> lambda : scheduled invocation
-lambda --> ecs : reminder processing
-ecs --> cw : application logs
-lambda --> cw : function logs
-iam --> ecs : task permissions
-iam --> lambda : execution permissions
-
-note right of rds
-Environment-specific target.
-Not used together with Aurora.
+note bottom of ecs
+CURRENT CODE BOUNDARY
+SQLite local profile only. PostgreSQL support needs implementation.
+S3 adapter presigns, but attendance discards its upload URL;
+Lambda handler and ZIP packaging are implemented and locally tested,
+but a supported persistent database is needed before AWS invocation.
+AWS resources and EventBridge schedule have not been deployed or tested.
 end note
 
-note right of s3
-Private by default.
-Use authorization and
-presigned URLs.
+note bottom of s3
+No public ACLs or public bucket policy.
+Distinct evidence and selfie prefixes.
+Retention schedule requires data-owner approval.
+end note
+
+note bottom of logs
+Never send selfie bytes, coordinates, geofence distance,
+credentials, request bodies, or signed URLs to logs.
 end note
 @enduml

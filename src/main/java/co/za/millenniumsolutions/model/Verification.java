@@ -10,14 +10,17 @@ public final class Verification {
     private final String verifierId;
     private final String evidenceVersionId;
     private final String action;
+    private final String comment;
     private final Instant createdAt;
 
-    public Verification(String id, String submissionId, String verifierId, String evidenceVersionId, String action, Instant createdAt) {
+    public Verification(String id, String submissionId, String verifierId, String evidenceVersionId,
+                        String action, String comment, Instant createdAt) {
         this.id = id;
         this.submissionId = submissionId;
         this.verifierId = verifierId;
         this.evidenceVersionId = evidenceVersionId;
         this.action = action;
+        this.comment = comment;
         this.createdAt = createdAt;
     }
 
@@ -36,6 +39,9 @@ public final class Verification {
     public String action() { return action; }
     public String getAction() { return action; }
 
+    public String comment() { return comment; }
+    public String getComment() { return comment; }
+
     public Instant createdAt() { return createdAt; }
     public Instant getCreatedAt() { return createdAt; }
 
@@ -43,16 +49,22 @@ public final class Verification {
     public boolean equals(Object object) {
         if (this == object) return true;
         if (!(object instanceof Verification other)) return false;
-        return Objects.equals(id, other.id) && Objects.equals(submissionId, other.submissionId) && Objects.equals(verifierId, other.verifierId) && Objects.equals(evidenceVersionId, other.evidenceVersionId) && Objects.equals(action, other.action) && Objects.equals(createdAt, other.createdAt);
+        return Objects.equals(id, other.id) && Objects.equals(submissionId, other.submissionId)
+                && Objects.equals(verifierId, other.verifierId)
+                && Objects.equals(evidenceVersionId, other.evidenceVersionId)
+                && Objects.equals(action, other.action) && Objects.equals(comment, other.comment)
+                && Objects.equals(createdAt, other.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, submissionId, verifierId, evidenceVersionId, action, createdAt);
+        return Objects.hash(id, submissionId, verifierId, evidenceVersionId, action, comment, createdAt);
     }
 
     @Override
     public String toString() {
-        return "Verification[id=" + id + ", submissionId=" + submissionId + ", verifierId=" + verifierId + ", evidenceVersionId=" + evidenceVersionId + ", action=" + action + ", createdAt=" + createdAt + "]";
+        return "Verification[id=" + id + ", submissionId=" + submissionId + ", verifierId=" + verifierId
+                + ", evidenceVersionId=" + evidenceVersionId + ", action=" + action + ", comment=" + comment
+                + ", createdAt=" + createdAt + "]";
     }
 }
