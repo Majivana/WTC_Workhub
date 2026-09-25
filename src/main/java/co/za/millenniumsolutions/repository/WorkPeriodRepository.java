@@ -42,4 +42,11 @@ public class WorkPeriodRepository extends RepositorySupport {
                         LocalDate.parse(rs.getString("end_date")),
                         rs.getBigDecimal("weekly_hours_target")), date.toString(), date.toString());
     }
+
+    public List<WorkPeriod> findAll() {
+        return jdbc.query("SELECT id,name,start_date,end_date,weekly_hours_target FROM work_period ORDER BY start_date DESC,id",
+                (rs, rowNum) -> new WorkPeriod(rs.getString("id"), rs.getString("name"),
+                        LocalDate.parse(rs.getString("start_date")), LocalDate.parse(rs.getString("end_date")),
+                        rs.getBigDecimal("weekly_hours_target")));
+    }
 }

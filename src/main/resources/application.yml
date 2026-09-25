@@ -21,6 +21,7 @@ server:
 app:
   storage:
     provider: ${WTC_STORAGE_PROVIDER:local}
+    local-directory: ${WTC_STORAGE_LOCAL_DIRECTORY:./private-object-data}
     s3:
       bucket: ${WTC_S3_BUCKET:}
       region: ${AWS_REGION:af-south-1}

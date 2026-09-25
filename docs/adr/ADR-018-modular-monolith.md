@@ -16,6 +16,13 @@ Keep a single Spring Boot modular monolith with JSON REST controllers, applicati
 repositories, and storage adapters. The current delivery is an API; a browser frontend is not
 included.
 
+### Implementation follow-up
+
+The original decision described the API-only implementation at the time of writing. A separate
+React/TypeScript browser client was later added under `frontend/`; the modular monolith remains its
+API and authorization boundary. The client is currently served by Vite in development and is not
+packaged into the backend Docker image.
+
 ## Alternatives considered
 
 ### Microservices

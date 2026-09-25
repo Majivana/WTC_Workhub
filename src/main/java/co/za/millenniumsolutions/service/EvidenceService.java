@@ -85,6 +85,47 @@ public class EvidenceService {
         return EvidenceMetadataResponse.from(current, version, object, null, false);
     }
 
+    public void uploadContent(String workEntryId, String objectId, byte[] content,
+                              String mediaType, String actorId) {
+        Evidence current = evidence.findByWorkEntryId(workEntryId)
+                .orElseThrow(() -> new NoSuchElementException("No evidence for work entry: " + workEntryId));
+        String latestVersionId = evidenceVersionId(current.id());
+        EvidenceVersion version = versions.findById(latestVersionId)
+                .orElseThrow(() -> new NoSuchElementException("Evidence metadata is incomplete"));
+        if (!version.privateObjectReferenceId().equals(objectId)) {
+            throw new SecurityException("Object does not belong to the latest evidence version");
+        }
+        PrivateObjectReference object = objects.findById(objectId)
+                .orElseThrow(() -> new NoSuchElementException("Evidence object metadata is incomplete"));
+        if (!actorId.equals(object.createdBy())) throw new SecurityException("Only the uploader may complete this upload");
+        if (content == null || content.length != object.sizeBytes()) {
+            throw new IllegalArgumentException("Uploaded file size does not match its metadata");
+        }
+        if (!object.mediaType().equalsIgnoreCase(mediaType == null ? "" : mediaType.split(";")[0].trim())) {
+            throw new IllegalArgumentException("Uploaded file type does not match its metadata");
+        }
+        String checksum;
+        try {
+            checksum = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(content));
+        } catch (java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+        if (!checksum.equalsIgnoreCase(object.checksum()) || !checksum.equalsIgnoreCase(version.checksum())) {
+            throw new IllegalArgumentException("Uploaded file checksum does not match its metadata");
+        }
+        storage.storeObject(object.objectKey(), content, object.mediaType());
+    }
+
+    public PrivateObjectAccessService.PrivateContent readContent(String workEntryId, String objectId, String actorId) {
+        Evidence current = evidence.findByWorkEntryId(workEntryId)
+                .orElseThrow(() -> new NoSuchElementException("No evidence for work entry: " + workEntryId));
+        if (versions.findById(evidenceVersionId(current.id())).map(v -> v.privateObjectReferenceId().equals(objectId)).orElse(false)
+                == false) throw new NoSuchElementException("Evidence version not found");
+        PrivateObjectReference object = objects.findById(objectId)
+                .orElseThrow(() -> new NoSuchElementException("Evidence object metadata is incomplete"));
+        return new PrivateObjectAccessService.PrivateContent(object.mediaType(), storage.readObject(object.objectKey()));
+    }
+
     private String evidenceVersionId(String evidenceId) {
         return versions.findLatestId(evidenceId)
                 .orElseThrow(() -> new NoSuchElementException("No evidence version for: " + evidenceId));

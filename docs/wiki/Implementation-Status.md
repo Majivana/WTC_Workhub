@@ -27,6 +27,9 @@ AWS operations into one explainable platform.
   user deactivation preserves historical foreign-key records.
 - Centralized RBAC permissions and role-to-permission mapping for student, supervisor, mentor,
   admin, and super-admin system roles.
+- React/TypeScript browser client with authenticated student, reviewer, and administration
+  workflows under `frontend/`. Frontend installation, build, and browser workflows are not yet
+  validated in this environment.
 - Ownership and assignment authorization across work entries, progress, dashboards,
   submissions, verification, evidence, attendance, notifications, private objects, reports,
   escalations, and activity management.
@@ -38,7 +41,7 @@ AWS operations into one explainable platform.
   the authenticated principal.
 - Finish replacing compatibility behavior for legacy role-only test contexts; production bearer
   requests already use authenticated principal and centralized authorization checks.
-- A browser frontend; the delivered application is a JSON REST API.
+- Frontend unit/build checks and live browser acceptance across student and reviewer workflows.
 - AWS runtime validation. Docker runs locally, but ECS, RDS, Aurora, S3, Lambda, and EventBridge
   have not been deployed or verified in AWS.
 - Evidence and selfie retention/deletion policy.

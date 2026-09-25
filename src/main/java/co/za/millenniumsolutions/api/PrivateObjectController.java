@@ -5,6 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -19,13 +22,29 @@ public class PrivateObjectController {
     }
 
     @GetMapping("/{objectId}/download")
-    public DownloadResponse download(@PathVariable String objectId,
-                                     @RequestParam String actorId,
-                                     Authentication authentication) {
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().startsWith("PERM_"))) {
-            actorId = authentication.getName();
-        }
-        return new DownloadResponse(access.createDownloadUrl(objectId, actorId));
+    @PreAuthorize("isAuthenticated()")
+    public DownloadResponse download(@PathVariable String objectId, Authentication authentication) {
+        return new DownloadResponse(access.createDownloadUrl(objectId, authentication.getName()));
+    }
+
+    @PutMapping("/{objectId}/content")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void uploadContent(@PathVariable String objectId, @RequestBody byte[] content,
+                              @RequestHeader(HttpHeaders.CONTENT_TYPE) String mediaType,
+                              Authentication authentication) {
+        access.storeContent(objectId, authentication.getName(), content, mediaType);
+    }
+
+    @GetMapping("/{objectId}/content")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> content(@PathVariable String objectId, Authentication authentication) {
+        PrivateObjectAccessService.PrivateContent content = access.readContent(objectId, authentication.getName());
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType(content.mediaType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment")
+                .header("X-Content-Type-Options", "nosniff")
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
+                .body(content.bytes());
     }
 
     @ExceptionHandler(SecurityException.class)

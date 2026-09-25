@@ -50,8 +50,9 @@ public class VerificationService {
         User verifier = users.findById(verifierId)
                 .orElseThrow(() -> new NoSuchElementException("Unknown verifier: " + verifierId));
         if (!verifier.active() || (!"SUPERVISOR".equalsIgnoreCase(verifier.systemRole())
+                && !"MENTOR".equalsIgnoreCase(verifier.systemRole())
                 && !"ADMIN".equalsIgnoreCase(verifier.systemRole()))) {
-            throw new IllegalStateException("Only active supervisors or administrators can verify submissions");
+            throw new IllegalStateException("Only active assigned mentors, supervisors or administrators can verify submissions");
         }
         String workerId = workEntries.findById(submission.workEntryId())
                 .orElseThrow(() -> new NoSuchElementException("Submission work entry is missing"))

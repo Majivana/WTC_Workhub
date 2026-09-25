@@ -58,6 +58,21 @@ public class WorkEntryRepository extends RepositorySupport {
                 .findFirst();
     }
 
+    public List<WorkEntry> findByUserAndPeriod(String userId, String workPeriodId) {
+        return jdbc.query("""
+                        SELECT e.id,e.user_id,e.work_period_id,e.activity_type_id,e.work_date,
+                               e.duration_minutes,e.status,t.start_time,t.end_time,t.break_minutes
+                        FROM work_entry e LEFT JOIN work_entry_timing t ON t.work_entry_id=e.id
+                        WHERE e.user_id=? AND e.work_period_id=? ORDER BY e.work_date DESC,e.id
+                        """,
+                (rs, rowNum) -> new WorkEntry(rs.getString("id"), rs.getString("user_id"),
+                        rs.getString("work_period_id"), rs.getString("activity_type_id"),
+                        LocalDate.parse(rs.getString("work_date")), rs.getInt("duration_minutes"),
+                        rs.getString("status"), rs.getString("start_time") == null ? null : LocalTime.parse(rs.getString("start_time")),
+                        rs.getString("end_time") == null ? null : LocalTime.parse(rs.getString("end_time")),
+                        rs.getInt("break_minutes")), userId, workPeriodId);
+    }
+
     public List<WorkEntryTiming> findOverlapping(String userId, LocalDate workDate,
                                                   LocalTime startTime, LocalTime endTime,
                                                   String excludedId) {

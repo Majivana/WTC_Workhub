@@ -58,6 +58,10 @@ public class SubmissionService {
                 .orElseThrow(() -> new NoSuchElementException("Unknown submission: " + id));
     }
 
+    public java.util.Optional<Submission> findByWorkEntryId(String workEntryId) {
+        return submissions.findByWorkEntryId(workEntryId);
+    }
+
     @Transactional
     public Submission transition(String id, String requestedStatus, String actorId) {
         return transition(id, requestedStatus, actorId, true);
@@ -80,7 +84,8 @@ public class SubmissionService {
         boolean finalDecision = target == SubmissionStatus.APPROVED
                 || target == SubmissionStatus.REJECTED
                 || target == SubmissionStatus.CHANGES_REQUESTED;
-        if (enforceAuthorization && finalDecision) {
+        boolean reviewerTransition = finalDecision || target == SubmissionStatus.UNDER_REVIEW;
+        if (enforceAuthorization && reviewerTransition) {
             boolean reviewer = "SUPERVISOR".equalsIgnoreCase(actor.systemRole())
                     || "MENTOR".equalsIgnoreCase(actor.systemRole())
                     || "ADMIN".equalsIgnoreCase(actor.systemRole())

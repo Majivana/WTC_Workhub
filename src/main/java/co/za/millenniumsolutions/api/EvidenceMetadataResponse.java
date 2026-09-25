@@ -13,6 +13,8 @@ public final class EvidenceMetadataResponse {
     private final String status;
     private final int versionNumber;
     private final String objectKey;
+    private final String privateObjectReferenceId;
+    private final String evidenceVersionId;
     private final String mediaType;
     private final long sizeBytes;
     private final String checksum;
@@ -24,7 +26,8 @@ public final class EvidenceMetadataResponse {
     private final boolean presigned;
 
     public EvidenceMetadataResponse(String evidenceId, String workEntryId, String status, int versionNumber,
-                                    String objectKey, String mediaType, long sizeBytes, String checksum,
+                                    String objectKey, String privateObjectReferenceId, String evidenceVersionId,
+                                    String mediaType, long sizeBytes, String checksum,
                                     String changeNotes, String purpose, String createdBy, Instant uploadedAt, String uploadUrl,
                                     boolean presigned) {
         this.evidenceId = evidenceId;
@@ -32,6 +35,8 @@ public final class EvidenceMetadataResponse {
         this.status = status;
         this.versionNumber = versionNumber;
         this.objectKey = objectKey;
+        this.privateObjectReferenceId = privateObjectReferenceId;
+        this.evidenceVersionId = evidenceVersionId;
         this.mediaType = mediaType;
         this.sizeBytes = sizeBytes;
         this.checksum = checksum;
@@ -47,7 +52,7 @@ public final class EvidenceMetadataResponse {
                                                  PrivateObjectReference object, String uploadUrl,
                                                  boolean presigned) {
         return new EvidenceMetadataResponse(evidence.id(), evidence.workEntryId(), evidence.status(),
-                version.versionNumber(), object.objectKey(), object.mediaType(), object.sizeBytes(),
+                version.versionNumber(), object.objectKey(), object.id(), version.id(), object.mediaType(), object.sizeBytes(),
                 version.checksum(), version.changeNotes(), object.purpose(), object.createdBy(), version.uploadedAt(),
                 uploadUrl, presigned);
     }
@@ -62,6 +67,10 @@ public final class EvidenceMetadataResponse {
     public int getVersionNumber() { return versionNumber; }
     public String objectKey() { return objectKey; }
     public String getObjectKey() { return objectKey; }
+    public String privateObjectReferenceId() { return privateObjectReferenceId; }
+    public String getPrivateObjectReferenceId() { return privateObjectReferenceId; }
+    public String evidenceVersionId() { return evidenceVersionId; }
+    public String getEvidenceVersionId() { return evidenceVersionId; }
     public String mediaType() { return mediaType; }
     public String getMediaType() { return mediaType; }
     public long sizeBytes() { return sizeBytes; }

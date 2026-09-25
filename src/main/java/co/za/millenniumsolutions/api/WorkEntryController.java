@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -27,6 +28,19 @@ public class WorkEntryController {
                                     @PathVariable String workPeriodId,
                                     @RequestBody WorkEntryRequest request) {
         return WorkEntryResponse.from(workEntryService.create(userId, workPeriodId, request));
+    }
+
+    @GetMapping("/users/{userId}/work-periods/{workPeriodId}/work-entries")
+    @PreAuthorize("@authorizationService.canAccessUser(authentication, #userId)")
+    public List<WorkEntryResponse> list(@PathVariable String userId, @PathVariable String workPeriodId) {
+        return workEntryService.findByUserAndPeriod(userId, workPeriodId).stream()
+                .map(WorkEntryResponse::from).toList();
+    }
+
+    @GetMapping("/work-entries/{id}")
+    @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #id)")
+    public WorkEntryResponse get(@PathVariable String id) {
+        return WorkEntryResponse.from(workEntryService.get(id));
     }
 
     @PutMapping("/work-entries/{id}")

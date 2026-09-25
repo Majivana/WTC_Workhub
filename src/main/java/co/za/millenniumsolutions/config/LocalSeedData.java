@@ -47,8 +47,8 @@ public class LocalSeedData {
                 INSERT OR IGNORE INTO work_period
                     (id, name, start_date, end_date, weekly_hours_target)
                 VALUES
-                    ('period-july-august-2026', 'July-August 2026',
-                     '2026-07-21', '2026-08-20', 18)
+                    ('period-september-december-2026', 'September-December 2026',
+                     '2026-09-01', '2026-12-31', 18)
                 """);
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO activity_type (id, name)

@@ -17,6 +17,22 @@ mvn spring-boot:run
 The local profile starts on port `8080`. The health endpoint is available at
 `http://localhost:8080/actuator/health`.
 
+### Browser frontend
+
+A React and TypeScript browser application is available under [`frontend/`](frontend/). Start the
+backend, then in a second terminal run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. Vite proxies `/api` and `/actuator` to the local backend. See
+[`frontend/README.md`](frontend/README.md) for browser workflows, API-backed screens, permissions,
+configuration, and current limitations. The browser UI is not included in the existing Spring Boot
+Docker image yet; use the Vite server for local browser access.
+
 ### Build commands
 
 The Makefile provides a consistent developer interface:
@@ -57,7 +73,7 @@ WTC_SEED_DATA=true mvn spring-boot:run
 ```
 
 The seed creates a Cape Town campus, a Peer Tutor work role, a demo student, a demo supervisor,
-the July–August 2026 WorkPeriod with an 18-hour weekly target, and sample activity types.
+the September–December 2026 WorkPeriod with an 18-hour weekly target, and sample activity types.
 
 SQLite is the only supported database at present. RDS PostgreSQL staging and Aurora PostgreSQL
 production are proposed only; neither is deployed, and the current SQLite-specific schema fails a
@@ -77,15 +93,15 @@ curl http://localhost:8080/actuator/health
 make docker-stop
 ```
 
-`make docker-run` persists the local SQLite database under `.docker-data/` and does not enable
-demo seed data by default. To enable the explicit development seed:
+`make docker-run` persists the local SQLite database and private evidence/selfie bytes under
+`.docker-data/` and does not enable demo seed data by default. To enable the explicit development seed:
 
 ```bash
 WTC_SEED_DATA=true make docker-run
 ```
 
 The image health check polls `/actuator/health`. `make docker-run` accepts `PORT`, `IMAGE`,
-`CONTAINER`, `DATA_DIR`, `STORAGE_PROVIDER`, `S3_BUCKET`, `AWS_REGION`, and
+`CONTAINER`, `DATA_DIR`, `STORAGE_PROVIDER`, `STORAGE_LOCAL_DIRECTORY`, `S3_BUCKET`, `AWS_REGION`, and
 `S3_PRESIGN_MINUTES` as Make variables. For example, `make docker-run PORT=8081 DATA_DIR=/srv/workhub`
 publishes on port 8081 and persists data at `/srv/workhub`.
 
@@ -100,6 +116,7 @@ Supported environment variables:
 | `WTC_DB_PATH` | `./workhub-local.db` locally; `/data/workhub.db` in `make docker-run` | SQLite database file path |
 | `WTC_SEED_DATA` | `false` | Explicitly enable deterministic local seed data |
 | `WTC_STORAGE_PROVIDER` | `local` | Evidence storage provider (`local` or `s3`) |
+| `WTC_STORAGE_LOCAL_DIRECTORY` | `./private-object-data`; `/data/private-object-data` in Docker | Private local evidence and selfie bytes |
 | `WTC_S3_BUCKET` | empty | S3 bucket when S3 storage is enabled |
 | `AWS_REGION` | `af-south-1` | AWS region used by the S3 adapter |
 | `WTC_S3_PRESIGN_MINUTES` | `10` | Lifetime of generated S3 pre-signed links |
@@ -112,15 +129,17 @@ The application is a Spring Boot modular monolith with a JSON REST API. Locally 
 features include authentication and permission-based authorization, configurable work periods
 and progress, work entries and activity types, evidence metadata/versioning, submission and
 verification workflows, first-party attendance and reconciliation, dashboards, notifications,
-escalations, CSV reporting, and an idempotent weekly reminder use case. The Java reminder handler
+escalations, CSV reporting, and an idempotent weekly reminder use case. A React/TypeScript browser client provides authenticated student, supervisor, and administrator workflows. The Java reminder handler
 has automated tests and a ZIP packaging profile.
 
 The supported runtime is local SQLite plus local object storage. RDS PostgreSQL and Aurora
 PostgreSQL are proposals only; the SQLite-specific schema fails against PostgreSQL 16. The S3
 adapter exists but no AWS upload/download round trip has been verified. ECS, VPC, IAM, CloudWatch,
-S3, RDS, Aurora, Lambda, and EventBridge have not been deployed in an AWS account. There is no
-browser frontend. Authenticated bearer requests use the principal and centralized authorization,
-but legacy `userId`/`actorId` contract fields and role-only test compatibility remain to be removed.
+S3, RDS, Aurora, Lambda, and EventBridge have not been deployed in an AWS account. The browser
+frontend is an API client for the local backend and does not claim an AWS deployment. Authenticated
+bearer requests use the principal and centralized authorization.
+Some authenticated APIs still accept user identifiers in path parameters and enforce access in the
+backend.
 See [implementation status](docs/wiki/Implementation-Status.md), [security](docs/wiki/Security.md),
 and [database status](docs/database/README.md) for boundaries and open risks.
 

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -57,5 +59,20 @@ public class S3StorageAdapter implements StoragePort {
         return presigner.presignGetObject(GetObjectPresignRequest.builder()
                         .signatureDuration(lifetime).getObjectRequest(get).build())
                 .url().toString();
+    }
+
+    @Override
+    public void storeObject(String objectKey, byte[] content, String mediaType) {
+        try (S3Client client = S3Client.builder().region(Region.of(properties.region())).build()) {
+            client.putObject(PutObjectRequest.builder().bucket(properties.bucket()).key(objectKey)
+                    .contentType(mediaType).contentLength((long) content.length).build(), RequestBody.fromBytes(content));
+        }
+    }
+
+    @Override
+    public byte[] readObject(String objectKey) {
+        try (S3Client client = S3Client.builder().region(Region.of(properties.region())).build()) {
+            return client.getObjectAsBytes(GetObjectRequest.builder().bucket(properties.bucket()).key(objectKey).build()).asByteArray();
+        }
     }
 }

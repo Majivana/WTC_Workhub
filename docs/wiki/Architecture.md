@@ -15,8 +15,10 @@ Implemented modules include authentication and permission-based authorization, w
 progress, work-entry capture, configurable activity types, evidence metadata/versioning,
 submissions, verification history, first-party attendance, dashboards, notifications,
 escalations, and CSV reporting. The active local persistence path is SQLite and local object
-storage; an S3 adapter exists but has not been tested against AWS. The browser frontend and AWS
-deployment remain planned. RDS PostgreSQL and Aurora PostgreSQL are not compatible with the
+storage; an S3 adapter exists but has not been tested against AWS. A React/TypeScript browser
+client is under `frontend/` and calls the same-origin API through the development proxy. Its build
+and browser workflows remain unverified in this environment. AWS deployment remains planned. RDS
+PostgreSQL and Aurora PostgreSQL are not compatible with the
 current SQLite-specific schema and migration code.
 
 See the PlantUML sources in `docs/diagrams/`:

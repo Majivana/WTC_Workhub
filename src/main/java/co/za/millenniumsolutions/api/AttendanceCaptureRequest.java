@@ -11,6 +11,7 @@ public class AttendanceCaptureRequest {
     private String checksum;
     private BigDecimal latitude;
     private BigDecimal longitude;
+    private String imageBase64;
 
     public AttendanceCaptureRequest() {}
     public String userId(){return userId;} public void setUserId(String x){userId=x;}
@@ -21,4 +22,5 @@ public class AttendanceCaptureRequest {
     public String checksum(){return checksum;} public void setChecksum(String x){checksum=x;}
     public BigDecimal latitude(){return latitude;} public void setLatitude(BigDecimal x){latitude=x;}
     public BigDecimal longitude(){return longitude;} public void setLongitude(BigDecimal x){longitude=x;}
+    public String imageBase64(){return imageBase64;} public void setImageBase64(String x){imageBase64=x;}
 }

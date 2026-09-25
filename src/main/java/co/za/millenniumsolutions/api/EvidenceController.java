@@ -4,10 +4,10 @@ import co.za.millenniumsolutions.service.EvidenceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-
 @RestController
 @RequestMapping("/api/work-entries/{workEntryId}/evidence")
 public class EvidenceController {
@@ -21,7 +21,9 @@ public class EvidenceController {
     @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
     @ResponseStatus(HttpStatus.CREATED)
     public EvidenceMetadataResponse upload(@PathVariable String workEntryId,
-                                           @RequestBody EvidenceUploadRequest request) {
+                                           @RequestBody EvidenceUploadRequest request,
+                                           Authentication authentication) {
+        request.setCreatedBy(authentication.getName());
         return evidence.upload(workEntryId, request);
     }
 
@@ -29,6 +31,29 @@ public class EvidenceController {
     @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
     public EvidenceMetadataResponse get(@PathVariable String workEntryId) {
         return evidence.get(workEntryId);
+    }
+
+    @PutMapping("/{objectId}/content")
+    @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void uploadContent(@PathVariable String workEntryId, @PathVariable String objectId,
+                              @RequestBody byte[] content,
+                              @RequestHeader(org.springframework.http.HttpHeaders.CONTENT_TYPE) String mediaType,
+                              Authentication authentication) {
+        evidence.uploadContent(workEntryId, objectId, content, mediaType, authentication.getName());
+    }
+
+    @GetMapping("/{objectId}/content")
+    @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
+    public org.springframework.http.ResponseEntity<byte[]> downloadContent(
+            @PathVariable String workEntryId, @PathVariable String objectId, Authentication authentication) {
+        var content = evidence.readContent(workEntryId, objectId, authentication.getName());
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType(content.mediaType()))
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment")
+                .header("X-Content-Type-Options", "nosniff")
+                .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "private, no-store")
+                .body(content.bytes());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -17,6 +17,9 @@ BCrypt-hashed and bearer tokens are stored only as SHA-256 hashes. Existing endp
 identity parameters remain temporary compatibility fields and are not a substitute for the
 authenticated principal.
 
+- `GET /api/me` returns the authenticated account and its effective permissions.
+- `GET /api/work-periods` lists configured periods available to authenticated users.
+
 ### Administration
 
 Administrators manage organization and assignment data under `/api/admin`:
@@ -64,24 +67,25 @@ Work entries must reference an existing active activity type.
 ### Evidence metadata
 
 `POST /api/work-entries/{workEntryId}/evidence` records an evidence version and its private
-object metadata (`mediaType`, `sizeBytes`, `checksum`, `purpose`, `createdBy`, and optional
-`changeNotes`). File bytes are not accepted or stored by this API. The storage port generates a random
-`evidence/<uuid>` key and returns a local test URL or, for S3, a presigned upload URL.
-Only PDF, JPEG, and PNG metadata is accepted, with a positive size up to 10 MB and a
-64-character SHA-256 checksum. Each successful upload creates the next evidence version,
-retains prior versions, writes an audit event, and `GET` on the same path returns the latest
-relational metadata.
+object metadata (`mediaType`, `sizeBytes`, `checksum`, `purpose`, and optional `changeNotes`). The
+authenticated principal supplies the uploader identity. The storage port generates a random
+`evidence/<uuid>` key and a private reference. Send raw file bytes to
+`PUT /api/work-entries/{workEntryId}/evidence/{objectId}/content` with the file media type as
+`Content-Type`; the service checks byte length, media type, and SHA-256 checksum before storage.
+`GET` on that content path returns the latest version's bytes only to a user authorized for the
+work entry. PDF, JPEG, and PNG files up to 10 MB are accepted. Each successful metadata upload
+creates the next evidence version, retains prior versions, and writes an audit event. `GET` on the
+metadata path returns the latest relational metadata.
 
 Private object downloads currently use:
 
 ```http
-GET /api/private-objects/{objectId}/download?actorId={userId}
+GET /api/private-objects/{objectId}/download
 ```
 
 The service permits the object owner, supervisors, and administrators, and returns a
-short-lived local URL or S3 presigned URL. Object keys are never public URLs. The `actorId`
-query parameter is a temporary development authorization input; it is not a substitute for an
-authenticated principal; remove this legacy field before treating the API contract as stable.
+short-lived local URL or S3 presigned URL. Object keys are never public URLs. The authenticated
+principal determines the actor; an `actorId` query parameter supplied by an older client is ignored.
 
 Successful responses contain:
 
@@ -131,6 +135,9 @@ Requests are rejected with `400 Bad Request` when required fields are missing, t
 after the start, the break is negative or consumes the entire range, the date is outside the
 WorkPeriod, or the interval overlaps an existing entry for the user. Editing a non-draft returns
 `409 Conflict`; unknown records return `404 Not Found`.
+Use `GET /api/users/{userId}/work-periods/{workPeriodId}/work-entries` to list entries for an
+authorized user and period, and `GET /api/work-entries/{id}` to retrieve one entry the caller may
+access.
 
 Implemented resource groups include:
 
@@ -150,8 +157,9 @@ Implemented resource groups include:
 
 Some request contracts retain legacy `userId`, `actorId`, or `verifierId` fields for compatibility;
 in authenticated bearer-token requests, actor identity and authorization use the principal.
-Remove those legacy fields before declaring the external API contract stable. API availability
-does not imply that an AWS deployment or browser frontend exists.
+Remove remaining legacy fields before declaring the external API contract stable. The browser
+client in `frontend/` consumes the existing REST API; API availability does not imply an AWS
+deployment.
 
 ### Submissions
 

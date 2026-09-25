@@ -5,6 +5,7 @@ CONTAINER ?= wtc-workhub
 PORT ?= 8080
 DATA_DIR ?= $(CURDIR)/.docker-data
 STORAGE_PROVIDER ?= local
+STORAGE_LOCAL_DIRECTORY ?= /data/private-object-data
 S3_BUCKET ?=
 AWS_REGION ?= af-south-1
 S3_PRESIGN_MINUTES ?= 10
@@ -41,6 +42,7 @@ docker-run:
 		--volume $(DATA_DIR):/data \
 		--env WTC_DB_PATH=/data/workhub.db \
 		--env WTC_STORAGE_PROVIDER=$(STORAGE_PROVIDER) \
+		--env WTC_STORAGE_LOCAL_DIRECTORY=$(STORAGE_LOCAL_DIRECTORY) \
 		--env WTC_S3_BUCKET=$(S3_BUCKET) \
 		--env AWS_REGION=$(AWS_REGION) \
 		--env WTC_S3_PRESIGN_MINUTES=$(S3_PRESIGN_MINUTES) \

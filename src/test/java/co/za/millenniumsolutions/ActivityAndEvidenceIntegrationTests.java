@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @IsolatedSqliteTest
 @SpringBootTest
@@ -115,7 +116,7 @@ class ActivityAndEvidenceIntegrationTests {
                 """.formatted(checksum);
 
         mockMvc.perform(post("/api/work-entries/w-evidence/evidence")
-                        .contentType(APPLICATION_JSON).content(request))
+                        .contentType(APPLICATION_JSON).content(request).with(user("u-activity").roles("STUDENT")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versionNumber").value(1))
                 .andExpect(jsonPath("$.objectKey").value(org.hamcrest.Matchers.matchesPattern(
@@ -127,7 +128,8 @@ class ActivityAndEvidenceIntegrationTests {
 
         mockMvc.perform(post("/api/work-entries/w-evidence/evidence")
                         .contentType(APPLICATION_JSON)
-                        .content(request.replace("work-entry-1.pdf", "work-entry-1-v2.pdf")))
+                        .content(request.replace("work-entry-1.pdf", "work-entry-1-v2.pdf"))
+                        .with(user("u-activity").roles("STUDENT")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versionNumber").value(2));
 

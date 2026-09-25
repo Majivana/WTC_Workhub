@@ -13,6 +13,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.Base64;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 
 @Service
 public class AttendanceService {
@@ -102,6 +106,18 @@ public class AttendanceService {
         String objectId = UUID.randomUUID().toString();
         objects.save(new PrivateObjectReference(objectId, upload.objectKey(), r.mediaType().trim().toLowerCase(),
                 r.sizeBytes(), r.checksum().trim().toLowerCase(), "ATTENDANCE_SELFIE", user.id(), now));
+        if (r.imageBase64() != null && !r.imageBase64().isBlank()) {
+            byte[] image;
+            try {
+                image = Base64.getDecoder().decode(r.imageBase64());
+            } catch (IllegalArgumentException exception) {
+                throw new IllegalArgumentException("Selfie image data is invalid");
+            }
+            if (image.length != r.sizeBytes() || !sha256(image).equalsIgnoreCase(r.checksum())) {
+                throw new IllegalArgumentException("Selfie image does not match its size and checksum metadata");
+            }
+            storage.storeObject(upload.objectKey(), image, r.mediaType().trim().toLowerCase());
+        }
         return new AttendanceCapture(UUID.randomUUID().toString(), sessionId, type, now, objectId, true,
                 "WITHIN_GEOFENCE:" + distanceMetres(r.latitude(), r.longitude(), fence));
     }
@@ -117,6 +133,13 @@ public class AttendanceService {
         double dp=Math.toRadians(f.latitude().doubleValue()-lat.doubleValue()), dl=Math.toRadians(f.longitude().doubleValue()-lon.doubleValue());
         double a=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);
         return earth*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    }
+    private String sha256(byte[] content) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
     }
     private String reconcile(String userId, String periodId, int minutes) {
         Integer entries=jdbc.queryForObject("SELECT COUNT(*) FROM work_entry WHERE user_id=? AND work_period_id=? AND duration_minutes>0",Integer.class,userId,periodId);

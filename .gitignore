@@ -41,3 +41,5 @@ build/
 *.db
 *.db-shm
 *.db-wal
+.private-object-data/
+private-object-data/

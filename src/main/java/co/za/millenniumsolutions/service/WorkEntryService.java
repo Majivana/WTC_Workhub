@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.List;
 
 @Service
 public class WorkEntryService {
@@ -58,6 +59,15 @@ public class WorkEntryService {
         return workEntries.save(new WorkEntry(existing.id(), existing.userId(), existing.workPeriodId(),
                 request.activityTypeId(), request.workDate(), validated.durationMinutes(),
                 existing.status(), request.startTime(), request.endTime(), validated.breakMinutes()));
+    }
+
+    public List<WorkEntry> findByUserAndPeriod(String userId, String workPeriodId) {
+        return workEntries.findByUserAndPeriod(userId, workPeriodId);
+    }
+
+    public WorkEntry get(String id) {
+        return workEntries.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Unknown work entry: " + id));
     }
 
     private WorkPeriod period(String workPeriodId) {

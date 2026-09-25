@@ -24,6 +24,15 @@ public class SubmissionController {
         return SubmissionResponse.from(submissions.create(workEntryId));
     }
 
+    @GetMapping("/work-entries/{workEntryId}/submissions")
+    @PreAuthorize("@authorizationService.canAccessWorkEntry(authentication, #workEntryId)")
+    public org.springframework.http.ResponseEntity<SubmissionResponse> byWorkEntry(@PathVariable String workEntryId) {
+        return submissions.findByWorkEntryId(workEntryId)
+                .map(SubmissionResponse::from)
+                .map(org.springframework.http.ResponseEntity::ok)
+                .orElseGet(() -> org.springframework.http.ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/submissions/{id}")
     @PreAuthorize("@authorizationService.canAccessSubmission(authentication, #id)")
     public SubmissionResponse get(@PathVariable String id) {

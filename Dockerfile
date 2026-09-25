@@ -10,6 +10,7 @@ FROM eclipse-temurin:21-jre-jammy AS runtime
 ENV JAVA_OPTS=""
 ENV WTC_DB_PATH=/data/workhub.db
 ENV WTC_STORAGE_PROVIDER=local
+ENV WTC_STORAGE_LOCAL_DIRECTORY=/data/private-object-data
 
 WORKDIR /app
 

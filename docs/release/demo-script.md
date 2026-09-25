@@ -53,11 +53,11 @@ Suggested commands to narrate:
 curl -s http://localhost:8080/actuator/health
 curl -s -H "Authorization: Bearer $WTC_DEMO_TOKEN" http://localhost:8080/api/activity-types
 curl -s -H "Authorization: Bearer $WTC_DEMO_TOKEN" \
-  http://localhost:8080/api/users/user-student-demo/work-periods/period-july-august-2026/progress
+  http://localhost:8080/api/users/user-student-demo/work-periods/period-september-december-2026/progress
 curl -s -X POST -H "Authorization: Bearer $WTC_DEMO_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"activityTypeId":"activity-student-support","workDate":"2026-08-10","startTime":"09:00","endTime":"11:00","breakMinutes":15}' \
-  http://localhost:8080/api/users/user-student-demo/work-periods/period-july-august-2026/work-entries
+  http://localhost:8080/api/users/user-student-demo/work-periods/period-september-december-2026/work-entries
 ```
 
 The seeded demo password is `demo-student-password`; do not type it visibly during a public

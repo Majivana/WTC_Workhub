@@ -16,19 +16,25 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.time.Instant;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @IsolatedSqliteTest
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(username = "user-student-demo", roles = "STUDENT")
 class StorageSecurityIntegrationTests {
+
+    @TempDir Path storageDirectory;
 
     @Autowired MockMvc mockMvc;
     @Autowired JdbcTemplate jdbc;
@@ -50,6 +56,20 @@ class StorageSecurityIntegrationTests {
         assertThat(evidence.objectKey()).isNotEqualTo(selfie.objectKey());
         assertThat(evidence.uploadUrl()).startsWith("local-storage://");
         assertThat(evidence.presigned()).isFalse();
+    }
+
+    @Test
+    void localAdapterStoresAndReadsPrivateBytesAndRejectsTraversal() {
+        LocalStorageAdapter storage = new LocalStorageAdapter();
+        ReflectionTestUtils.setField(storage, "localDirectory", storageDirectory.toString());
+        byte[] content = "private evidence".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String objectKey = "evidence/example-object";
+
+        storage.storeObject(objectKey, content, "text/plain");
+
+        assertThat(storage.readObject(objectKey)).containsExactly(content);
+        assertThatThrownBy(() -> storage.readObject("../outside"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -87,16 +107,16 @@ class StorageSecurityIntegrationTests {
                 "application/pdf", 10, "d".repeat(64), "EVIDENCE", "u-owner", Instant.now()));
 
         mockMvc.perform(get("/api/private-objects/object-security/download")
-                        .param("actorId", "u-other"))
+                        .param("actorId", "u-owner").with(user("u-other").roles("STUDENT")))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(get("/api/private-objects/object-security/download")
-                        .param("actorId", "u-owner"))
+                        .param("actorId", "u-other").with(user("u-owner").roles("STUDENT")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value("local-storage://evidence/private-key"));
 
         mockMvc.perform(get("/api/private-objects/object-security/download")
-                        .param("actorId", "u-supervisor"))
+                        .param("actorId", "u-owner").with(user("u-supervisor").roles("SUPERVISOR")))
                 .andExpect(status().isOk());
     }
 }
