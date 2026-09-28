@@ -4,12 +4,15 @@ This page records the local release review for 2026-09-25. It does not assert th
 environment, external demo, or public release exists. Release tags are intentionally created only
 after every required publication gate is verified.
 
+Frontend verification was extended on 2026-09-28; browser E2E/manual acceptance remains open.
+
 ## Evidence
 
-- [Application architecture (SVG)](evidence/application-architecture.svg), with
-  [PNG rendering](evidence/application-architecture.png).
+- [Application architecture (current SVG)](evidence/application-architecture.svg). The checked-in
+  PNG is an older 2026-09-25 snapshot and is retained as historical evidence.
 - [Local health endpoint screenshot](evidence/local-health.png).
 - [Seven-minute API demonstration runbook](demo-script.md).
+- [Frontend product surface and API mapping](../wiki/Frontend-Product-Surface.md).
 - Database strategy, including the PostgreSQL 16 compatibility result:
   [database guide](../database/README.md) and [ADR index](../adr/README.md).
 - Cloud infrastructure evidence and deployment status: [AWS design](../aws/README.md).
@@ -59,6 +62,15 @@ Completed on 2026-09-25:
   using `workhub-local.db` and clears foreign-key dependents before fixture setup. The four suites
   from the reported CI failure and the complete 45-test build pass after this change.
 - AWS — no account resources were provisioned or tested; all AWS infrastructure remains planned.
+
+Completed on 2026-09-28:
+
+- `cd frontend && npm test` — passed; 2 test files, 3 tests.
+- `cd frontend && npm run build` — passed with lazy-loaded feature routes.
+- GitHub Actions now includes a frontend verification job that runs `npm ci`, tests, and build
+  before packaging. The remote workflow has not yet run for this change.
+- Live browser workflow/accessibility acceptance — not performed; no browser E2E suite is present.
+- GitHub issue/Projects board — not re-checked or edited; see [board audit](../project-board-audit.md).
 
 The first container launch used a host data directory not writable by forced UID 10001 and exited.
 The acceptance run was repeated against the image's own `/data` directory, owned by the non-root

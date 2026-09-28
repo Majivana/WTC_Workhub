@@ -28,7 +28,9 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. Vite proxies `/api` and `/actuator` to the local backend. See
+Open `http://localhost:5173`. Vite proxies `/api` and `/actuator` to the local backend. Run
+`npm test` and `npm run build` from `frontend/` to check the frontend. The client uses actual API
+responses and has no production demo fixtures. See
 [`frontend/README.md`](frontend/README.md) for browser workflows, API-backed screens, permissions,
 configuration, and current limitations. The browser UI is not included in the existing Spring Boot
 Docker image yet; use the Vite server for local browser access.
@@ -48,7 +50,7 @@ make docker-build
 make docker-run
 ```
 
-GitHub Actions runs separate compile, test, package, container-build/smoke, image-publish, and
+GitHub Actions runs Java compile/test, frontend test/build, package, container-build/smoke, image-publish, and
 staging-deploy stages. Pull requests run through the health-checked container stage but cannot
 publish images or access AWS. Pushes to `main` publish a commit-tagged image to GHCR. Staging
 deployment is a manual, protected, OIDC-based workflow and remains gated until AWS is provisioned
@@ -72,8 +74,11 @@ rm -f workhub-local.db
 WTC_SEED_DATA=true mvn spring-boot:run
 ```
 
-The seed creates a Cape Town campus, a Peer Tutor work role, a demo student, a demo supervisor,
-the September–December 2026 WorkPeriod with an 18-hour weekly target, and sample activity types.
+The seed creates a Cape Town campus with two 150 m attendance geofences: the Cape Town test point
+(-33.9249, 18.4241) and the additional local test point (-34.036152, 18.675398). It also creates a
+Peer Tutor work role, a demo student, a demo supervisor, the September–December 2026 WorkPeriod
+with an 18-hour weekly target, and sample activity types. Restart the backend after updating the
+seed so an existing local database receives the additional geofence.
 
 SQLite is the only supported database at present. RDS PostgreSQL staging and Aurora PostgreSQL
 production are proposed only; neither is deployed, and the current SQLite-specific schema fails a
@@ -129,15 +134,18 @@ The application is a Spring Boot modular monolith with a JSON REST API. Locally 
 features include authentication and permission-based authorization, configurable work periods
 and progress, work entries and activity types, evidence metadata/versioning, submission and
 verification workflows, first-party attendance and reconciliation, dashboards, notifications,
-escalations, CSV reporting, and an idempotent weekly reminder use case. A React/TypeScript browser client provides authenticated student, supervisor, and administrator workflows. The Java reminder handler
+escalations, CSV reporting, and an idempotent weekly reminder use case. A React/TypeScript browser
+client provides authenticated student, supervisor, mentor, and administrator workflows. The Java reminder handler
 has automated tests and a ZIP packaging profile.
 
 The supported runtime is local SQLite plus local object storage. RDS PostgreSQL and Aurora
 PostgreSQL are proposals only; the SQLite-specific schema fails against PostgreSQL 16. The S3
 adapter exists but no AWS upload/download round trip has been verified. ECS, VPC, IAM, CloudWatch,
 S3, RDS, Aurora, Lambda, and EventBridge have not been deployed in an AWS account. The browser
-frontend is an API client for the local backend and does not claim an AWS deployment. Authenticated
-bearer requests use the principal and centralized authorization.
+frontend is an API client for the local backend and does not claim an AWS deployment. Its dashboard
+adapter normalizes JDBC snake_case rows, and permission-aware routing follows the backend's effective
+permissions. Frontend tests and production build pass, but live browser acceptance has not been run.
+Authenticated bearer requests use the principal and centralized authorization.
 Some authenticated APIs still accept user identifiers in path parameters and enforce access in the
 backend.
 See [implementation status](docs/wiki/Implementation-Status.md), [security](docs/wiki/Security.md),
@@ -152,7 +160,7 @@ published, so no YouTube URL or release tag is claimed. The README is the author
 start; the architecture, database, AWS design, security notes, ADRs, journal, wiki sources, and
 diagrams are linked below.
 
-![Application architecture: local verified path and planned AWS services](docs/release/evidence/application-architecture.png)
+![Application architecture: local verified path and planned AWS services](docs/release/evidence/application-architecture.svg)
 
 The milestone and daily delivery dates below are the original project plan. Final local validation
 was run on 25 September 2026; the demo publication and external release gates remain open.
@@ -425,6 +433,8 @@ small, meaningful, and linked to the relevant issue.
 - [AWS specification](docs/aws/README.md)
 - [Security notes](docs/wiki/Security.md)
 - [Current implementation and limitations](docs/wiki/Implementation-Status.md)
+- [Frontend product surface and API mapping](docs/wiki/Frontend-Product-Surface.md)
+- [Issue board alignment audit](docs/project-board-audit.md)
 - [PlantUML diagrams](docs/diagrams/)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Development journal](docs/journal/README.md)

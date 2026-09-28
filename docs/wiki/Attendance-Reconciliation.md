@@ -22,8 +22,17 @@ supervisor or administrator, a reason, and retain the previous/new timestamps in
 
 The API accepts legacy `userId` fields for compatibility, but authenticated bearer requests use
 the Spring Security principal and authorization checks. Remove these request fields before
-stabilizing the API contract. Selfies are supporting attendance evidence only, not
-facial-recognition input. Camera/location/network failures require an explicit operational
-fallback and retention/deletion policy before production use. AWS selfie upload is not complete:
-the service does not yet pass the pre-signed upload URL to the client, and no AWS object round trip
-has been tested.
+stabilizing the API contract. The browser requests camera and location permission, captures a JPEG,
+and sends image bytes (base64), checksum, size, media type, coordinates, and assigned campus through
+the authenticated API. The service validates the location and image metadata and sends bytes to the
+configured storage adapter; the browser reports success only after the API returns successfully.
+The local browser-to-API workflow and AWS S3 storage have not been manually end-to-end tested in
+this review, and no AWS object round trip has been tested. Selfies are supporting attendance
+evidence only, not facial-recognition input. Camera/location/network failures require an explicit
+operational fallback and retention/deletion policy before production use.
+
+Local seed data configures two active geofences for the seeded Cape Town campus, each with a 150 m
+radius: `(-33.9249, 18.4241)` and the additional test point `(-34.036152, 18.675398)`. Attendance
+accepts a report inside any active geofence assigned to the user's campus; other coordinates
+remain rejected. These coordinates are local demo configuration, not a campus registry or a
+production geofence approval.

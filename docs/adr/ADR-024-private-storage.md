@@ -37,8 +37,16 @@ Rejected because attendance and evidence objects contain sensitive personal info
 
 ### Negative consequences and trade-offs
 
-- The current attendance API drops the pre-signed upload URL; the selfie upload flow is incomplete.
+- Browser uploads pass through the application API, increasing API bandwidth and memory pressure
+  compared with a direct-to-S3 upload flow.
 - S3 upload/download behavior, IAM, encryption, and retention have not been tested in AWS.
+
+### Implementation update (2026-09-28)
+
+The browser now sends evidence file bytes to authenticated content endpoints and attendance JPEG
+bytes in the attendance request. The service writes content through the configured storage adapter.
+The S3 adapter's presigning support remains available, but the browser does not currently upload
+directly to S3. This update records implementation status and does not claim AWS validation.
 
 ## Security and privacy impact
 

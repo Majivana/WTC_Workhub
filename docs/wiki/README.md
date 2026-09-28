@@ -15,6 +15,7 @@ repository Wiki can be created.
 - [AWS Cloud Architecture](AWS-Cloud-Architecture.md)
 - [Database and ERD](Database-ERD.md)
 - [API Documentation](API-Documentation.md)
+- [Frontend Product Surface](Frontend-Product-Surface.md)
 - [User Roles and Permissions](User-Roles-and-Permissions.md)
 - [Business Functionality](Business-Functionality.md)
 - [Work Periods](Work-Periods.md)
@@ -40,5 +41,6 @@ repository Wiki can be created.
 ## Delivery evidence
 
 - [Development Journals](Development-Journals.md)
+- [Project Board Alignment Record](../project-board-audit.md)
 - [Retrospective](Retrospective.md)
 - [Future Improvements](Future-Improvements.md)

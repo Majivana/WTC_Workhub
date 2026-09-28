@@ -30,6 +30,13 @@ Administrative management routes are role-protected with `ROLE_ADMIN`. User deac
 implemented as a soft state change so historical records remain queryable and referentially
 intact.
 
+The browser keeps the opaque bearer token in tab-scoped `sessionStorage`, attaches it centrally,
+and clears it after a `401` or local sign-out. There is no server-side logout/revocation endpoint;
+sign-out from the browser does not revoke the server session early. Frontend permission checks and
+route guards only control usability; the API remains authoritative. Camera images and coordinates
+are sent in an authenticated API request and must be transmitted over HTTPS outside local
+development.
+
 Authorization uses a centralized permission model separate from work roles. Supported system
 roles are `STUDENT`, `SUPERVISOR`, `MENTOR`, `ADMIN`, and `SUPER_ADMIN`; permissions are stored
 in `permission` and `role_permission` tables and exposed to the security context as

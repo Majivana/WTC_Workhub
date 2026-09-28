@@ -15,5 +15,6 @@ retention, operational access, data flows, and the deployment verification check
 **Verification status:** This is planned architecture. AWS CLI/account access was unavailable
 during review; no VPC, ECS service, IAM role, S3 bucket, database, or CloudWatch resource was
 deployed or validated. The local Docker image and health check were verified separately. The S3
-adapter can issue pre-signed URLs, but AWS object access has not been integration-tested, and the
-attendance service currently discards the selfie upload URL. Do not describe AWS as operational.
+adapter can issue pre-signed URLs, while the current browser sends evidence and attendance image
+bytes through authenticated API content endpoints. The API then uses the configured storage
+adapter. AWS object access has not been integration-tested. Do not describe AWS as operational.

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, api, sessionToken } from './client'
+import { api, sessionToken } from './client'
 
 describe('central API client', () => {
   afterEach(() => sessionToken.clear())
@@ -26,7 +26,7 @@ describe('central API client', () => {
       code: 'ACCESS_DENIED', message: 'This record is outside your assignment.',
     }), { status: 403, headers: { 'content-type': 'application/json' } })))
 
-    await expect(api.get('/private')).rejects.toMatchObject<ApiError>({
+    await expect(api.get('/private')).rejects.toMatchObject({
       status: 403,
       kind: 'forbidden',
       message: 'This record is outside your assignment.',

@@ -17,7 +17,7 @@ Terminal 2:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -30,7 +30,9 @@ WORKHUB_API_TARGET=http://localhost:8081 npm run dev
 
 `VITE_API_BASE_URL` is optional and defaults to the same-origin `/api` path. Vite variables are
 public browser configuration; never place passwords, tokens, or cloud credentials in a `VITE_*`
-variable. Login tokens are kept in tab-scoped `sessionStorage` and are not written to logs.
+variable. Login tokens are kept in tab-scoped `sessionStorage` and are not written to logs. Logout
+clears this browser tab's token; the backend currently has no logout/revocation endpoint, so the
+server-side bearer session remains usable until it expires or the application restarts.
 
 For an explicitly seeded local demo, start the backend with `WTC_SEED_DATA=true`. The demo accounts
 are `student.demo` / `demo-student-password` and `supervisor.demo` / `demo-supervisor-password`;
@@ -53,7 +55,7 @@ record, server, and network errors are shown as distinct feedback states.
 ## Development and checks
 
 ```bash
-npm install
+npm ci
 npm run dev
 npm test
 npm run build
@@ -62,12 +64,13 @@ npm run preview
 
 Vite uses React, TypeScript, Tailwind CSS 4, React Router, TanStack Query, React Hook Form and Zod.
 The API client is centralized in `src/api/client.ts`; API DTOs live in `src/types/domain.ts` and
-feature screens are under `src/features/`.
+feature screens are under `src/features/`. Feature routes are lazy-loaded. The dashboard adapter
+converts backend JDBC snake_case summary rows to the camelCase view model.
 
 ## Current limitations
 
-- The dependency lockfile has not been generated yet. `npm install` resolves the declared versions
-  locally; generate and commit `package-lock.json` before using `npm ci` in CI or release builds.
+- `package-lock.json` is present in the working tree. Keep it committed alongside `package.json`
+  and use `npm ci` for reproducible installs.
 - The browser frontend runs separately from the Spring Boot application. The current Docker image
   packages only the backend; a production deployment needs a same-origin reverse proxy or a static
   frontend host configured to forward `/api` to the backend over HTTPS.
@@ -78,5 +81,8 @@ feature screens are under `src/features/`.
 - Attendance selfies and evidence files are sent to the backend and stored in its configured
   private provider. Production use requires private encrypted storage, TLS, operational retention
   controls and access policies described in the root security documentation.
-- There is no browser end-to-end suite yet. Unit tests cover central API request and error handling;
-  live workflow acceptance requires a running backend and configured demo accounts.
+- Automated tests currently cover the API client's token/error handling and dashboard row
+  normalization (3 tests). There is no end-to-end browser suite yet, and screens have not been
+  manually accepted against a running backend in this review.
+- Camera capture, geolocation, and attendance requests use the backend API contract, but the
+  complete user workflow has not been exercised in a real browser with camera/location permissions.

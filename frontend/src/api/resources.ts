@@ -12,7 +12,23 @@ export const authApi = {
 export const workApi = {
   periods: () => api.get<WorkPeriod[]>('/work-periods'),
   activities: () => api.get<ActivityType[]>('/activity-types'),
-  dashboard: (userId: string, periodId: string) => api.get<StudentDashboard>(`/users/${encodeURIComponent(userId)}/work-periods/${encodeURIComponent(periodId)}/dashboard`),
+  dashboard: async (userId: string, periodId: string) => {
+    const response = await api.get<{
+      progress: StudentDashboard['progress']
+      attendance: Array<{ id: string; status: string; clock_in_at: string; duration_minutes: number | null; reconciliation_reference: string | null }>
+      workEntries: Array<{ id: string; work_date: string; duration_minutes: number; status: string; submission_status: string }>
+      notifications: StudentDashboard['notifications']
+    }>(`/users/${encodeURIComponent(userId)}/work-periods/${encodeURIComponent(periodId)}/dashboard`)
+    return {
+      ...response,
+      attendance: response.attendance.map(({ clock_in_at, duration_minutes, reconciliation_reference, ...row }) => ({
+        ...row, clockInAt: clock_in_at, durationMinutes: duration_minutes, reconciliationReference: reconciliation_reference,
+      })),
+      workEntries: response.workEntries.map(({ work_date, duration_minutes, ...row }) => ({
+        ...row, workDate: work_date, durationMinutes: duration_minutes,
+      })),
+    } satisfies StudentDashboard
+  },
   entries: (userId: string, periodId: string) => api.get<WorkEntry[]>(`/users/${encodeURIComponent(userId)}/work-periods/${encodeURIComponent(periodId)}/work-entries`),
   entry: (id: string) => api.get<WorkEntry>(`/work-entries/${encodeURIComponent(id)}`),
   createEntry: (userId: string, periodId: string, input: Pick<WorkEntry, 'activityTypeId' | 'workDate' | 'startTime' | 'endTime' | 'breakMinutes'>) => api.post<WorkEntry>(`/users/${encodeURIComponent(userId)}/work-periods/${encodeURIComponent(periodId)}/work-entries`, input),
@@ -56,6 +72,7 @@ export const adminApi = {
   createCampus: (institutionId: string, name: string) => api.post<Campus>('/admin/campuses', { institutionId, name }),
   activityTypes: (includeInactive = true) => api.get<ActivityType[]>(`/activity-types?includeInactive=${includeInactive}`),
   createActivityType: (name: string) => api.post<ActivityType>('/activity-types', { name, active: true }),
+  updateActivityType: (activity: ActivityType) => api.put<ActivityType>(`/activity-types/${encodeURIComponent(activity.id)}`, activity),
   report: (filters: Record<string, string>) => {
     const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value))
     return api.get<string>(`/admin/reports/work-summary.csv${query.size ? `?${query}` : ''}`)

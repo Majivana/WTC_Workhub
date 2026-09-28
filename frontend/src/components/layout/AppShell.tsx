@@ -23,7 +23,7 @@ export function AppShell() {
   })
   const unread = notifications.data?.filter(item => !item.readAt).length ?? 0
   const reviewAccess = has('SUBMISSION_REVIEW', 'VERIFICATION_REVIEW') || hasRole('SUPERVISOR', 'MENTOR', 'ADMIN', 'SUPER_ADMIN')
-  const adminAccess = has('USER_MANAGE') || hasRole('ADMIN', 'SUPER_ADMIN')
+  const adminAccess = has('USER_MANAGE', 'ORGANIZATION_READ', 'ORGANIZATION_MANAGE') || hasRole('ADMIN', 'SUPER_ADMIN')
   const nav = [
     { to: '/app', label: 'Overview', icon: Activity, show: true, end: true },
     { to: '/app/attendance', label: 'Attendance', icon: UserRound, show: hasRole('STUDENT') },

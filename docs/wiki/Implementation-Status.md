@@ -27,9 +27,12 @@ AWS operations into one explainable platform.
   user deactivation preserves historical foreign-key records.
 - Centralized RBAC permissions and role-to-permission mapping for student, supervisor, mentor,
   admin, and super-admin system roles.
-- React/TypeScript browser client with authenticated student, reviewer, and administration
-  workflows under `frontend/`. Frontend installation, build, and browser workflows are not yet
-  validated in this environment.
+- React/TypeScript browser client under `frontend/` with student attendance/work/evidence/submission
+  flows, reviewer queue and verification, notifications, escalations, administration, and CSV
+  reporting. API/client tests pass and the production build passes; manual browser acceptance and
+  end-to-end tests remain open.
+- Frontend route chunks are lazy-loaded, protected navigation follows effective API permissions,
+  and the dashboard adapter translates JDBC snake_case rows into the browser model.
 - Ownership and assignment authorization across work entries, progress, dashboards,
   submissions, verification, evidence, attendance, notifications, private objects, reports,
   escalations, and activity management.
@@ -41,7 +44,8 @@ AWS operations into one explainable platform.
   the authenticated principal.
 - Finish replacing compatibility behavior for legacy role-only test contexts; production bearer
   requests already use authenticated principal and centralized authorization checks.
-- Frontend unit/build checks and live browser acceptance across student and reviewer workflows.
+- Manual browser acceptance and end-to-end coverage across student and reviewer workflows,
+  including camera/location denial and 401/403/409 interaction states.
 - AWS runtime validation. Docker runs locally, but ECS, RDS, Aurora, S3, Lambda, and EventBridge
   have not been deployed or verified in AWS.
 - Evidence and selfie retention/deletion policy.
@@ -52,9 +56,6 @@ known limits and the current validation record.
 
 ## Issue-board alignment
 
-GitHub issues #15 and #16 are closed and match the implemented activity/evidence/storage work.
-Issue #17's evidence-versioning acceptance criteria are implemented and tested, pending board
-closure. The Milestone 2 parent issue still contains an older
-unchecked child checklist for #15 and #16; that checklist should be corrected in GitHub. The
-available repository integration is read-only, so this repository cannot claim that board edit
-has been performed.
+See [project board audit](../project-board-audit.md) for the last recorded issue state, frontend
+acceptance mapping, and board follow-ups. The live GitHub board was not accessible during the
+2026-09-28 review, so its current status is not asserted.

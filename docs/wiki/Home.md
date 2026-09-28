@@ -18,3 +18,7 @@ Student sign-in
 
 This Wiki source is based on supplied current-system evidence and explicitly labels proposed
 redesign decisions.
+
+The separate browser client and its endpoint-backed workflows are summarized in
+[Frontend Product Surface](Frontend-Product-Surface.md). AWS, PostgreSQL, and live browser
+acceptance status are called out separately from implemented local behavior.

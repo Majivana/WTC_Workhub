@@ -85,9 +85,26 @@ export interface Notification {
 
 export interface StudentDashboard {
   progress: Progress
-  attendance: AttendanceSession[]
-  workEntries: Array<WorkEntry & { submission_status?: string }>
+  attendance: DashboardAttendanceSession[]
+  workEntries: DashboardWorkEntry[]
   notifications: Notification[]
+}
+
+/** The dashboard endpoint returns compact JDBC summary rows, not full entity DTOs. */
+export interface DashboardAttendanceSession {
+  id: string
+  status: string
+  clockInAt: string
+  durationMinutes: number | null
+  reconciliationReference: string | null
+}
+
+export interface DashboardWorkEntry {
+  id: string
+  workDate: string
+  durationMinutes: number
+  status: string
+  submission_status: string
 }
 
 export interface QueueItem {
@@ -117,6 +134,8 @@ export interface EvidenceMetadata {
   status: string
   versionNumber: number
   objectKey: string
+  privateObjectReferenceId: string
+  evidenceVersionId: string
   mediaType: string
   sizeBytes: number
   checksum: string
@@ -158,4 +177,3 @@ export interface User {
   institutionId?: string | null; campusId?: string | null; workRoleId?: string | null
   mentorId?: string | null; supervisorId?: string | null; active: boolean
 }
-

@@ -48,8 +48,10 @@ Retention, deletion, and legal-hold periods require owner approval before deploy
 
 ## Operational impact
 
-Local storage supports tests and demos. The AWS selfie upload contract is incomplete and no real S3
-round trip has been tested.
+Local storage supports tests and demos. The browser sends captured image bytes through the
+authenticated API, and the attendance service stores them through the configured storage adapter.
+This implementation path was completed after the decision date; no real S3 round trip has been
+tested.
 
 ## Validation
 

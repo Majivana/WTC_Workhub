@@ -5,14 +5,16 @@ requests to `main` and pushes to `main`:
 
 1. **Compile** production and test sources with Java 21 and Maven.
 2. **Test** runs the unit and integration suites and retains Surefire reports for 14 days.
-3. **Package** builds the deployable Spring Boot JAR and retains it for 14 days.
-4. **Container smoke** builds the multi-stage image, waits for Docker health, and requests
-   `/actuator/health`.
-5. **Publish image** runs only for a push to `main` (or an opted-in staging dispatch from
+3. **Frontend verify** runs `npm ci`, frontend unit tests, and the Vite production build. It runs
+   alongside Java tests; packaging waits for both checks.
+4. **Package** builds the deployable Spring Boot JAR and retains it for 14 days.
+5. **Container smoke** builds the multi-stage image, waits for Docker health, and requests
+  `/actuator/health`.
+6. **Publish image** runs only for a push to `main` (or an opted-in staging dispatch from
    `main`), and publishes `ghcr.io/<owner>/<repository>:sha-<commit>` to GHCR. Pull requests
    receive no package-write permission. The tag identifies the source commit; deployments use
    this immutable commit tag rather than `latest`.
-6. **Deploy staging** can be requested with **Actions → CI and delivery → Run workflow** and the
+7. **Deploy staging** can be requested with **Actions → CI and delivery → Run workflow** and the
    `deploy_staging` input. It requires the protected GitHub `staging` environment and AWS OIDC.
    It updates the configured ECS service and waits for service stability.
 

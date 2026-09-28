@@ -4,6 +4,7 @@ left to right direction
 skinparam componentStyle rectangle
 
 actor "Student / Supervisor / Admin" as user
+component "React / TypeScript browser UI\nVite in development\nproduction host not configured" as browser
 cloud "AWS Region (target)" {
   node "VPC across 2+ AZs" {
     node "Public subnets" {
@@ -38,14 +39,14 @@ cloud "AWS Region (target)" {
   component "ACM certificate" as acm
 }
 
-user --> alb : HTTPS 443
-alb --> ecs : app port\nALB SG -> task SG only
+user --> browser : browser session
+browser --> alb : HTTPS /api
+alb --> ecs : port 8080\nALB SG -> task SG only
 ecs --> db : TLS PostgreSQL 5432\ntask SG -> DB SG only
 reminder --> db : TLS PostgreSQL 5432\nnotification/progress queries
 ecs --> s3ep : HTTPS S3 requests
 s3ep --> s3 : private object API
-ecs ..> s3 : presigned PUT/GET URLs\n(scoped prefixes, short-lived)
-user ..> s3 : direct HTTPS object transfer\n(target flow; selfie path incomplete)
+ecs --> s3 : authenticated S3 object API\ntask role + scoped prefixes
 ecs --> endpoints : HTTPS 443
 endpoints --> ecr : image pull
 endpoints --> logs : stdout/stderr
@@ -65,10 +66,17 @@ acm ..> alb : TLS certificate
 note bottom of ecs
 CURRENT CODE BOUNDARY
 SQLite local profile only. PostgreSQL support needs implementation.
-S3 adapter presigns, but attendance discards its upload URL;
+Browser upload bytes go through the API and storage adapter;
+S3 task-role access is not verified against AWS.
 Lambda handler and ZIP packaging are implemented and locally tested,
 but a supported persistent database is needed before AWS invocation.
 AWS resources and EventBridge schedule have not been deployed or tested.
+end note
+
+note bottom of browser
+Frontend tests and production build pass.
+No manual browser/E2E acceptance has been recorded.
+The Spring Boot Docker image does not package the frontend.
 end note
 
 note bottom of s3

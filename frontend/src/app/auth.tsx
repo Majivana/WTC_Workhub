@@ -7,7 +7,7 @@ import type { CurrentUser } from '../types/domain'
 interface AuthContextValue {
   user: CurrentUser | null
   loading: boolean
-  signIn: (username: string, password: string) => Promise<void>
+  signIn: (username: string, password: string, redirectTo?: string) => Promise<void>
   signOut: () => void
   has: (...permissions: string[]) => boolean
   hasRole: (...roles: string[]) => boolean
@@ -30,13 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(undefined)
   }, [navigate])
 
-  async function signIn(username: string, password: string) {
+  async function signIn(username: string, password: string, redirectTo = '/app') {
     const session = await authApi.login(username, password)
     sessionToken.set(session.token)
     try {
       const profile = await authApi.me()
       setUser(profile)
-      navigate('/app', { replace: true })
+      navigate(redirectTo, { replace: true })
     } catch (error) {
       sessionToken.clear()
       throw error

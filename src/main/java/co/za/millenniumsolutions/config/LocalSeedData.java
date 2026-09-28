@@ -28,7 +28,8 @@ public class LocalSeedData {
                 INSERT OR IGNORE INTO campus_geofence
                     (id, campus_id, latitude, longitude, radius_metres, active)
                 VALUES
-                    ('geofence-cape-town-primary', 'campus-cape-town', -33.9249, 18.4241, 150, 1)
+                    ('geofence-cape-town-primary', 'campus-cape-town', -33.9249, 18.4241, 150, 1),
+                    ('geofence-user-test-location', 'campus-cape-town', -34.036152, 18.675398, 150, 1)
                 """);
         jdbcTemplate.update("""
                 INSERT OR IGNORE INTO work_role (id, code, name)

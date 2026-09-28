@@ -11,7 +11,7 @@ collections PrivateObjectStorage
 == Clock in ==
 User -> Browser: Select "Clock in"
 Browser -> Browser: Request camera and location permission
-Browser -> AttendanceApi: Submit selfie and location proof
+Browser -> AttendanceApi: Submit base64 JPEG, metadata and location over HTTPS
 AttendanceApi -> AttendanceService: Validate authenticated user
 AttendanceService -> Database: Load assigned campus geofence
 AttendanceService -> AttendanceService: Validate location inside geofence
@@ -23,7 +23,7 @@ Browser --> User: Show clock-in time and campus
 == Clock out ==
 User -> Browser: Select "Clock out"
 Browser -> Browser: Capture selfie and current location
-Browser -> AttendanceApi: Submit clock-out proof
+Browser -> AttendanceApi: Submit base64 JPEG, metadata and location over HTTPS
 AttendanceApi -> AttendanceService: Validate active session
 AttendanceService -> Database: Load active session and campus geofence
 AttendanceService -> AttendanceService: Validate location and timestamp ordering

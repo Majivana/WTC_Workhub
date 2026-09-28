@@ -10,3 +10,7 @@ metadata, relationships, workflow state, and historical records. The local adapt
 verified development path; the S3 adapter is implemented but has not been tested against AWS.
 RDS PostgreSQL and Aurora PostgreSQL remain proposed because the current schema and migrations
 are SQLite-specific.
+
+The separate React/TypeScript browser client covers student, reviewer, mentor, and administrator
+workflows using these same endpoints. Its tests and production build pass, while live browser
+acceptance and E2E testing remain open. See [Frontend Product Surface](Frontend-Product-Surface.md).

@@ -9,10 +9,10 @@
 </defs>
 <rect width="1400" height="900" fill="#f7f9fc"/>
 <text x="64" y="64" class="title">WTC Workhub — application architecture</text>
-<text x="64" y="96" class="subtitle">Verified local path (green) · planned AWS path (amber dashed) · status as of 2026-09-25</text>
+<text x="64" y="96" class="subtitle">Verified local backend + frontend build/tests (green) · planned AWS path (amber dashed) · 2026-09-28</text>
 
 <rect x="60" y="180" width="210" height="120" class="box neutral"/>
-<text x="165" y="222" text-anchor="middle" class="head">Client</text><text x="165" y="250" text-anchor="middle" class="body">JSON over HTTP</text><text x="165" y="276" text-anchor="middle" class="small">No browser UI shipped</text>
+<text x="165" y="222" text-anchor="middle" class="head">Browser UI</text><text x="165" y="250" text-anchor="middle" class="body">React + TypeScript</text><text x="165" y="276" text-anchor="middle" class="small">Build/tests pass · no E2E yet</text>
 
 <rect x="350" y="150" width="500" height="510" class="box live"/>
 <text x="600" y="190" text-anchor="middle" class="head">Spring Boot modular monolith · implemented</text>
@@ -30,7 +30,7 @@
 
 <rect x="350" y="720" width="500" height="110" class="box future"/><text x="600" y="760" text-anchor="middle" class="head">AWS runtime (planned only)</text><text x="600" y="790" text-anchor="middle" class="body">VPC · ECS/Fargate · IAM roles · CloudWatch · Lambda/EventBridge</text><text x="600" y="815" text-anchor="middle" class="small">No account resources verified or deployed</text>
 
-<path d="M270 240 H350" class="line"/><text x="310" y="226" text-anchor="middle" class="small">HTTPS in target</text>
+<path d="M270 240 H350" class="line"/><text x="310" y="226" text-anchor="middle" class="small">/api · HTTPS in target</text>
 <path d="M850 545 H950" class="line"/><text x="900" y="530" text-anchor="middle" class="small">JDBC</text>
 <path d="M805 405 H875 V452 H950" class="line"/><text x="874" y="386" text-anchor="middle" class="small">storage port</text>
 <path d="M850 545 H900 V720 H850" class="dashed"/>

@@ -58,11 +58,13 @@ Before creating either service, price the exact region and configuration in the
 [Amazon Aurora pricing](https://aws.amazon.com/rds/aurora/pricing/). Prices and eligible free
 allowances can change; no rates are asserted here.
 
-There is also an attendance integration gap: `AttendanceService` requests a pre-signed selfie
-upload and stores the object reference, but discards the returned upload URL. The attendance API
-does not currently give that URL to the client, so the selfie upload round-trip is not implemented
-end to end. Do not claim that clock-in/out selfies have been written to S3 until that contract and
-an AWS upload test are implemented.
+The browser attendance flow now submits the captured JPEG as base64 in the authenticated
+`/api/attendance` request. `AttendanceService` validates size/checksum and passes bytes through the
+storage adapter; evidence uploads likewise send bytes through authenticated content endpoints.
+In S3 mode these operations require the ECS application task role to write/read the private object
+prefixes. This describes the implemented contract only: it has not been exercised in a browser
+against AWS, and no S3 object round trip has been tested. Do not claim AWS attendance/evidence
+storage is working until that test is recorded.
 
 ### Verification performed locally (2026-09-25)
 
@@ -91,13 +93,11 @@ and observability paths. The target uses one AWS region and multiple Availabilit
   conditional on implementing and validating PostgreSQL support first. Use one database per
   environment; do not connect staging and production databases to the same service.
 - Store evidence and attendance selfies in a dedicated private S3 bucket. Use separate key
-  prefixes (`evidence/` and `attendance-selfies/`) and short-lived pre-signed requests. For the
-  target flow, the API validates capture metadata/location and returns a pre-signed S3 upload URL;
-  the browser uploads selfie bytes directly to S3 over TLS. The API records the object
-  key/reference and attendance metadata in the database. Authorized downloads follow an
-  application authorization check before a short-lived pre-signed GET URL is issued. Evidence
-  upload URL issuance and private-object download URL issuance exist in code; the selfie upload
-  response path is still missing.
+  prefixes (`evidence/` and `attendance-selfies/`). In the current browser flow, clients upload
+  bytes to the authenticated API over HTTPS; the API validates metadata and writes bytes to S3
+  using the ECS task role. Reads pass through an application authorization check and the private
+  object content API. The storage adapter also supports pre-signed URLs, but the browser workflow
+  currently uses the API content endpoints. No AWS upload/download round trip has been tested.
 - Route task access to S3 through an S3 gateway VPC endpoint. Use interface endpoints for ECR
   image pulls, CloudWatch Logs, and Secrets Manager where practical. If endpoints are not
   provisioned, explicitly budget and restrict NAT egress; do not give tasks public IPs as a

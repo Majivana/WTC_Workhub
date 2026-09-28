@@ -73,6 +73,16 @@ class AttendanceIntegrationTests {
                 .isGreaterThanOrEqualTo(1);
     }
 
+    @Test void acceptsAttendanceAtAnyConfiguredActiveGeofence() throws Exception {
+        fences.save(new CampusGeofence("g-att-secondary", "c-att", new BigDecimal("-34.036152"),
+                new BigDecimal("18.675398"), 150, true));
+
+        mvc.perform(post("/api/attendance/clock-in").contentType(APPLICATION_JSON)
+                        .content(request("-34.036152", "18.675398")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
     private String request(String lat, String lon) {
         return """
           {"userId":"u-att","campusId":"c-att","workPeriodId":"p-att",

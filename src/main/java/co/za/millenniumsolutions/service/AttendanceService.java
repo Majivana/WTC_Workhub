@@ -47,8 +47,7 @@ public class AttendanceService {
             fail(user.id(), "DUPLICATE_ACTIVE_SESSION");
             throw new IllegalStateException("User already has an active attendance session");
         }
-        CampusGeofence fence = geofence(request.campusId());
-        validateLocation(request, fence, user);
+        CampusGeofence fence = geofence(request.campusId(), request, user);
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();
         AttendanceSession session = sessions.save(new AttendanceSession(sessionId, user.id(), request.campusId(),
@@ -64,8 +63,7 @@ public class AttendanceService {
         if (!"ACTIVE".equals(session.status())) throw new IllegalStateException("Attendance session is not active");
         if (!session.userId().equals(request.userId())) throw new SecurityException("Session belongs to another user");
         User user = user(request.userId());
-        CampusGeofence fence = geofence(session.campusId());
-        validateLocation(request, fence, user);
+        CampusGeofence fence = geofence(session.campusId(), request, user);
         Instant now = Instant.now();
         if (!now.isAfter(session.clockInAt())) throw new IllegalStateException("Clock-out must follow clock-in");
         int minutes = (int) Duration.between(session.clockInAt(), now).toMinutes();
@@ -122,11 +120,18 @@ public class AttendanceService {
                 "WITHIN_GEOFENCE:" + distanceMetres(r.latitude(), r.longitude(), fence));
     }
 
-    private void validateLocation(AttendanceCaptureRequest r, CampusGeofence fence, User user) {
+    private CampusGeofence geofence(String campusId, AttendanceCaptureRequest r, User user) {
         if (r.latitude()==null || r.longitude()==null) { fail(user.id(), "LOCATION_MISSING"); throw new IllegalArgumentException("Location is required"); }
         StoragePolicy.validate(new StorageObjectRequest(StorageObjectType.ATTENDANCE_SELFIE, r.mediaType(), r.sizeBytes(), r.checksum()));
-        double distance = distanceMetres(r.latitude(), r.longitude(), fence);
-        if (distance > fence.radiusMetres()) { fail(user.id(), "OUTSIDE_GEOFENCE"); throw new SecurityException("Location is outside the approved campus geofence"); }
+        var activeFences = geofences.findActiveByCampusId(campusId);
+        if (activeFences.isEmpty()) throw new IllegalStateException("No active campus geofence configured");
+        return activeFences.stream()
+                .filter(fence -> distanceMetres(r.latitude(), r.longitude(), fence) <= fence.radiusMetres())
+                .findFirst()
+                .orElseGet(() -> {
+                    fail(user.id(), "OUTSIDE_GEOFENCE");
+                    throw new SecurityException("Location is outside the approved campus geofence");
+                });
     }
     private double distanceMetres(BigDecimal lat, BigDecimal lon, CampusGeofence f) {
         double earth=6371000, p1=Math.toRadians(lat.doubleValue()), p2=Math.toRadians(f.latitude().doubleValue());
@@ -148,7 +153,6 @@ public class AttendanceService {
         return "entries="+entries+",evidence="+evidence+",verified="+verified+",attendanceMinutes="+minutes;
     }
     private User user(String id){return users.findById(id).filter(User::active).orElseThrow(()->new NoSuchElementException("Unknown or inactive user: "+id));}
-    private CampusGeofence geofence(String id){return geofences.findActiveByCampusId(id).orElseThrow(()->new IllegalStateException("No active campus geofence configured")); }
     private void fail(String actor,String action){audit(actor, action, UUID.randomUUID().toString(), "failed=true");}
     private void audit(String actor,String action,String entity,String details){audits.record(actor, action, entity, details);}
 }

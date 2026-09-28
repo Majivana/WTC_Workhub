@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileUp, Pencil, Plus, Send, X } from 'lucide-react'
 import { useAuth } from '../../app/auth'
 import { workApi } from '../../api/resources'
@@ -83,7 +83,7 @@ export function WorkPage() {
     {entries.data && <section className="panel"><div className="section-heading"><div><span className="eyebrow">PERIOD RECORD</span><h2>Recorded work</h2></div><span className="muted">{entries.data.length} {entries.data.length === 1 ? 'entry' : 'entries'}</span></div>
       {entries.data.length === 0 ? <EmptyState title="Nothing recorded yet">Use the form above to add your first work entry for this period.</EmptyState> : <div className="table-wrap"><table><thead><tr><th>Date</th><th>Activity</th><th>Time</th><th>Duration</th><th>Work</th><th>Submission</th><th className="actions-col">Actions</th></tr></thead><tbody>{entries.data.map(entry => <tr key={entry.id}><td>{formatDate(entry.workDate)}</td><td>{activities.data?.find(activity => activity.id === entry.activityTypeId)?.name ?? 'Activity'}</td><td>{entry.startTime}–{entry.endTime}</td><td>{formatHours(entry.durationMinutes / 60)}</td><td><Status value={entry.status} /></td><td>{entry.submission ? <Status value={entry.submission.status} /> : <span className="muted">Not submitted</span>}</td><td><div className="row-actions">{entry.status === 'DRAFT' && <button className="button button-small button-secondary" onClick={() => { setEditing(entry); setMessage('') }}><Pencil size={14} /> Edit</button>}<EvidencePanel workEntryId={entry.id} /><SubmissionAction entry={entry} status={entry.submission?.status} pending={submission.isPending} onSubmit={() => submission.mutate(entry.id)} /></div></td></tr>)}</tbody></table></div>}
     </section>}
-    {save.error && <PageError error={save.error} />}{submission.error && <PageError error={submission.error} />}
+    {Boolean(submission.error) && <PageError error={submission.error} />}
   </div>
 }
 
@@ -101,7 +101,7 @@ function EntryFormView({ period, activities, initial, busy, error, onSubmit }: {
     <label className="field"><span>End time</span><input type="time" {...form.register('endTime')} /><FieldError value={form.formState.errors.endTime?.message} /></label>
     <label className="field"><span>Break (minutes)</span><input type="number" min="0" step="1" {...form.register('breakMinutes', { valueAsNumber: true })} /><FieldError value={form.formState.errors.breakMinutes?.message} /></label>
     <div className="form-note">Effective duration is calculated and validated by Workhub. The current API records activity and time; it does not yet capture a written work description.</div>
-    {error && <div className="form-full"><PageError error={error} /></div>}
+    {Boolean(error) && <div className="form-full"><PageError error={error} /></div>}
     <div className="form-actions form-full"><button className="button button-primary" disabled={busy}>{busy ? 'Saving…' : initial ? 'Save changes' : 'Save draft'}</button></div>
   </form>
 }

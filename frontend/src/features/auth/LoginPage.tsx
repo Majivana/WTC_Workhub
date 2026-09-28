@@ -17,7 +17,9 @@ export function LoginPage() {
     event.preventDefault()
     setError('')
     setBusy(true)
-    try { await signIn(username.trim(), password) }
+    const requestedPath = (location.state as { from?: unknown } | null)?.from
+    const redirectTo = typeof requestedPath === 'string' && requestedPath.startsWith('/app/') ? requestedPath : '/app'
+    try { await signIn(username.trim(), password, redirectTo) }
     catch (cause) { setError(cause instanceof ApiError && cause.status === 401 ? 'The username or password is incorrect.' : cause instanceof Error ? cause.message : 'Sign in could not be completed.') }
     finally { setBusy(false) }
   }

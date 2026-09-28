@@ -16,8 +16,9 @@ progress, work-entry capture, configurable activity types, evidence metadata/ver
 submissions, verification history, first-party attendance, dashboards, notifications,
 escalations, and CSV reporting. The active local persistence path is SQLite and local object
 storage; an S3 adapter exists but has not been tested against AWS. A React/TypeScript browser
-client is under `frontend/` and calls the same-origin API through the development proxy. Its build
-and browser workflows remain unverified in this environment. AWS deployment remains planned. RDS
+client is under `frontend/`, calls the existing REST API through the Vite development proxy, and
+has a tested production build plus API adapter unit coverage. Manual browser acceptance and E2E
+coverage remain open. AWS deployment remains planned. RDS
 PostgreSQL and Aurora PostgreSQL are not compatible with the
 current SQLite-specific schema and migration code.
 
